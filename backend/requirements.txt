@@ -1,0 +1,10 @@
+# Runtime dependencies (kept minimal on purpose)
+fastapi==0.110.1
+uvicorn==0.25.0
+pydantic>=2.6.4
+pyjwt>=2.10.1
+python-dotenv>=1.0.1
+python-multipart>=0.0.9
+tzdata>=2024.2
+# Optional: MongoDB persistence. Without it the API stores state in backend/data/state.json
+pymongo==4.6.3

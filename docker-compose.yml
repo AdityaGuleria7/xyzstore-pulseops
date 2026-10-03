@@ -1,0 +1,32 @@
+services:
+  mongo:
+    image: mongo:8
+    restart: unless-stopped
+    volumes:
+      - pulseops_mongo:/data/db
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "8000:8000"
+    environment:
+      MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017}
+      DB_NAME: ${DB_NAME:-pulseops}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8000,http://localhost:3000}
+      PULSEOPS_ENV: development
+      JWT_SECRET: ${JWT_SECRET:-local-only-change-me}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin123}
+      PACKER_EMAIL: ${PACKER_EMAIL:-packer@example.com}
+      PACKER_PASSWORD: ${PACKER_PASSWORD:-packer123}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Kolkata}
+      ENFORCE_LABEL_CUTOFF: "false"
+    volumes:
+      - pulseops_data:/app/backend/data
+
+volumes:
+  pulseops_mongo:
+  pulseops_data:

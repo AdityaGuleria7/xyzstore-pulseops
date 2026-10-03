@@ -1,0 +1,1509 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+@import "tailwindcss";
+
+/* Light theme — honors the "User Preferences (authoritative)" section of
+   design-system/MASTER.md: clean, calm, minimal, data-dense, light background. */
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-heading: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  --color-background: oklch(0.985 0.002 247.86); /* #F8FAFC slate-50 */
+  --color-foreground: oklch(0.21 0.034 264.66);  /* #0F172A slate-900 */
+  --color-primary: oklch(0.2795 0.0368 260.03);   /* #1E293B slate-800 */
+  --color-on-primary: oklch(1 0 0);               /* #FFFFFF */
+  --color-secondary: oklch(0.3717 0.0392 257.29); /* #334155 slate-700 */
+  --color-accent: oklch(0.7227 0.192 149.58);     /* #22C55E green-500 */
+  --color-muted: oklch(0.967 0.003 264.54);       /* #F1F5F9 slate-100 */
+  --color-muted-foreground: oklch(0.554 0.046 257.42); /* #64748B slate-500 */
+  --color-border: oklch(0.929 0.013 255.51);      /* #E2E8F0 slate-200 */
+  --color-destructive: oklch(0.6368 0.2078 25.33); /* #EF4444 red-500 */
+  --color-ring: oklch(0.2795 0.0368 260.03);      /* slate-800 */
+
+  /* Status accents (color signals status, not decoration) */
+  --color-healthy: oklch(0.627 0.17 149.58);   /* #22C55E green-500 */
+  --color-at-risk: oklch(0.769 0.188 70.08);   /* #F59E0B amber-500 */
+  --color-delayed: oklch(0.637 0.208 25.33);   /* #EF4444 red-500 */
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark theme (toggle in header) */
+.dark{background:#0a0f1a;color:#e2e8f0}
+.dark.bg-slate-50,.dark .bg-slate-50{background:#0a0f1a}
+.dark .bg-white{background:#0f172a}
+.dark .bg-slate-100{background:#1e293b}
+.dark .border-slate-200,.dark .border-slate-100{border-color:#1e293b}
+.dark .text-slate-900,.dark .text-slate-800{color:#f1f5f9}
+.dark .text-slate-500,.dark .text-slate-600{color:#94a3b8}
+.dark select,.dark input{background:#0f172a;color:#e2e8f0}
+.dark .hover\:bg-slate-50:hover{background:#1e293b}
+
+/* PulseOps shared operations UI: every tab follows the Couriers & Staging reference layout. */
+/* Header/map stacking safety: Leaflet creates high internal z-index panes.
+   The map is isolated below the application chrome so controls and tiles never
+   cover the sticky header or navigation. */
+.pulseops-shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  isolation: isolate;
+}
+.ops-page {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  color: var(--color-foreground);
+}
+.ops-page-header { margin-bottom: 0; padding-bottom: 14px; }
+.ops-page-title {
+  margin-top: 4px;
+  font-size: 30px;
+  line-height: 1.14;
+  letter-spacing: -.035em;
+  font-weight: 800;
+  color: #0f172a;
+}
+.ops-page-subtitle {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #64748b;
+}
+.ops-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+}
+.ops-panel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+}
+.ops-field {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.25rem;
+  outline: none;
+}
+.ops-field:focus { border-color: #0f172a; box-shadow: 0 0 0 1px #0f172a; }
+.ops-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border: 1px solid #0f172a;
+  background: #0f172a;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s ease, opacity .15s ease, transform .15s ease;
+}
+.ops-primary:hover { background: #1e293b; }
+.ops-primary:disabled { opacity: .4; cursor: not-allowed; }
+.ops-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #0f172a;
+  border-radius: 8px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease;
+}
+.ops-secondary:hover { background: #f8fafc; border-color: #cbd5e1; }
+.ops-secondary:disabled { opacity: .4; cursor: not-allowed; }
+.field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 800;
+  color: #334155;
+}
+.section-title {
+  font-size: 17px;
+  line-height: 1.25;
+  font-weight: 800;
+  color: #0f172a;
+}
+.ops-alert-warning {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 600;
+}
+.dark .ops-page-title,.dark .section-title { color: #f8fafc; }
+.dark .ops-page-subtitle { color: #94a3b8; }
+.dark .ops-card,.dark .ops-panel,.dark .ops-field,.dark .ops-secondary { background: #0f172a; border-color: #1e293b; color: #e2e8f0; }
+.dark .ops-field::placeholder { color: #64748b; }
+.dark .ops-secondary:hover { background: #1e293b; }
+.dark .ops-alert-warning { background: #2a2110; border-color: #6b4f11; color: #fcd34d; }
+@media (max-width: 700px) {
+  .ops-page { padding: 16px; }
+  .ops-page-title { font-size: 26px; }
+  .ops-page-header { flex-direction: column; }
+  .ops-page-header > *:last-child { width: 100%; }
+  .ops-alert-warning { align-items: flex-start; flex-direction: column; }
+}
+
+/* Shared KPI typography used across Dashboard, Receiving and Shift Report. */
+.metric-label {
+  font-size: 10px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: .11em;
+  font-weight: 800;
+  color: #64748b;
+}
+.metric-value {
+  margin-top: 6px;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -.03em;
+  font-weight: 800;
+  color: #0f172a;
+}
+.dark .metric-label { color: #94a3b8; }
+.dark .metric-value { color: #f8fafc; }
+
+/* Compact contextual help used beside every operations page title. */
+.page-help {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 9999px;
+  background: #fff;
+  color: #64748b;
+  cursor: help;
+  transition: border-color .15s ease, color .15s ease, background .15s ease;
+}
+.page-help:hover,
+.page-help:focus-visible {
+  border-color: #94a3b8;
+  color: #0f172a;
+  outline: none;
+}
+.page-help-tooltip {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(360px, 72vw);
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #0f172a;
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 500;
+  box-shadow: 0 10px 30px rgba(15,23,42,.16);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-2px);
+  transition: opacity .14s ease, transform .14s ease;
+}
+.page-help-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 9px;
+  width: 9px;
+  height: 9px;
+  background: #0f172a;
+  border-left: 1px solid #0f172a;
+  border-top: 1px solid #0f172a;
+  transform: rotate(45deg);
+}
+.group:hover > .page-help-tooltip,
+.group:focus-within > .page-help-tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+.dark .page-help { background: #0f172a; border-color: #334155; color: #94a3b8; }
+.dark .page-help:hover,
+.dark .page-help:focus-visible { border-color: #475569; color: #f8fafc; }
+@media (max-width: 900px) {
+  .ops-page-header { flex-wrap: wrap; }
+  .ops-page-header > .min-w-0 { flex: 1 1 auto; }
+  .ops-page-header > .flex-wrap { flex: 1 1 100%; justify-content: flex-start; }
+}
+
+/* Kanban stage slider: compact, read-only visual progress for every order card. */
+.kanban-range {
+  height: 6px;
+  width: 100%;
+  accent-color: var(--range-color, #0f172a);
+  cursor: default;
+  background: linear-gradient(to right, var(--range-color, #0f172a) 0 var(--range-progress, 0%), #e2e8f0 var(--range-progress, 0%) 100%);
+  border-radius: 9999px;
+}
+.kanban-range:disabled { opacity: 1; }
+.kanban-range::-webkit-slider-runnable-track { height: 6px; border-radius: 9999px; background: transparent; }
+.kanban-range::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 9999px; border: 2px solid #0f172a; background: #fff; margin-top: -4px; box-shadow: 0 1px 2px rgba(15,23,42,.12); }
+.kanban-range::-moz-range-track { height: 6px; border-radius: 9999px; background: #e2e8f0; }
+.kanban-range::-moz-range-progress { height: 6px; border-radius: 9999px; background: #0f172a; }
+.kanban-range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 9999px; border: 2px solid #0f172a; background: #fff; box-shadow: 0 1px 2px rgba(15,23,42,.12); }
+
+
+
+/* V20 header polish: remove the redundant risk counter, give the clock a clear accent, and make inventory search affordance visually explicit. */
+.pulseops-clock { background:#eff6ff; border-color:#bfdbfe; }
+.pulseops-clock-icon { background:#dbeafe; color:#2563eb; }
+.pulseops-clock-time { color:#1d4ed8; }
+.stock-header-search .ops-field { padding-left: 3rem !important; }
+.stock-search-icon { background:#f8fafc; border:1px solid #e2e8f0; box-shadow:0 1px 2px rgba(15,23,42,.04); }
+.stock-search-icon svg { color:#64748b; }
+.stock-search-clear:hover { background:#f1f5f9; }
+.dark .pulseops-clock { background:#0f172a; border-color:#1e3a8a; }
+.dark .pulseops-clock-icon { background:#172554; color:#60a5fa; }
+.dark .pulseops-clock-time { color:#93c5fd; }
+.dark .stock-search-icon { background:#111827; border-color:#334155; }
+.dark .stock-search-clear:hover { background:#1e293b; color:#f8fafc; }
+
+
+/* V24: compact, stable live clock card with a clear two-line hierarchy. */
+.pulseops-clock {
+  width: 180px;
+  min-height: 56px;
+  box-sizing: border-box;
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+.pulseops-clock-icon {
+  background: #dbeafe;
+  color: #2563eb;
+}
+.pulseops-clock-time {
+  color: #1d4ed8;
+  line-height: 1.15;
+}
+.pulseops-clock-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  width: max-content;
+  max-width: 100%;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  font-size: 10px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: .01em;
+  color: #1d4ed8;
+  background: #dbeafe;
+  border: 1px solid #bfdbfe;
+}
+.pulseops-clock-zone {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+.dark .pulseops-clock {
+  background: #0f172a;
+  border-color: #1e3a8a;
+}
+.dark .pulseops-clock-icon {
+  background: #172554;
+  color: #60a5fa;
+}
+.dark .pulseops-clock-time {
+  color: #bfdbfe;
+}
+.dark .pulseops-clock-date {
+  color: #bfdbfe;
+  background: #172554;
+  border-color: #1e40af;
+}
+@media (max-width: 1100px) and (min-width: 901px) {
+  .pulseops-clock { width: 168px; }
+}
+
+/* Presentation polish: consistent title-to-content breathing room and compact inventory search. */
+.stock-header-search { flex: 0 1 360px; min-width: 220px; }
+.stock-header-search .ops-field { min-height: 42px; }
+
+/* Kanban board: keep all stages in one horizontal row; each stage scrolls independently. */
+.kanban-layout { display: block; }
+.kanban-scroll { min-width: 0; scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+.kanban-scroll > div { scroll-margin-inline: 18px; }
+
+/* V17 product polish: shared stage and issue colour language. */
+.stage-received { background: #f8fafc; border-color: #cbd5e1; }
+.stage-processing { background: #eff6ff; border-color: #bfdbfe; }
+.stage-picking { background: #eef2ff; border-color: #c7d2fe; }
+.stage-packing { background: #fffbeb; border-color: #fde68a; }
+.stage-staging { background: #faf5ff; border-color: #e9d5ff; }
+.stage-shipped { background: #ecfdf5; border-color: #a7f3d0; }
+
+.stage-received .metric-value,.stage-received .stage-title { color:#475569; }
+.stage-processing .metric-value,.stage-processing .stage-title { color:#1d4ed8; }
+.stage-picking .metric-value,.stage-picking .stage-title { color:#4338ca; }
+.stage-packing .metric-value,.stage-packing .stage-title { color:#b45309; }
+.stage-staging .metric-value,.stage-staging .stage-title { color:#7e22ce; }
+.stage-shipped .metric-value,.stage-shipped .stage-title { color:#047857; }
+
+.ops-page-title { letter-spacing: -.04em; }
+.ops-page-header { padding-bottom: 18px; }
+.ops-page-header > .min-w-0 { padding-bottom: 2px; }
+
+.issue-filter {
+  display:inline-flex; align-items:center; gap:7px; min-height:34px; padding:0 11px;
+  border:1px solid #e2e8f0; border-radius:999px; background:#fff; color:#64748b;
+  font-size:11px; font-weight:800; cursor:pointer; transition:.15s ease;
+}
+.issue-filter:hover { border-color:#cbd5e1; color:#0f172a; background:#f8fafc; }
+.issue-filter.is-active { color:#0f172a; border-color:#94a3b8; box-shadow:0 1px 2px rgba(15,23,42,.05); }
+.issue-filter b { min-width:20px; padding:2px 5px; border-radius:999px; background:#f1f5f9; color:#475569; font-size:9px; text-align:center; }
+.issue-filter-dot { width:7px; height:7px; border-radius:999px; }
+
+.pulseops-map {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+  width: 100%;
+  height: 390px;
+  min-height: 320px;
+  overflow: hidden;
+  background:#dbeafe;
+}
+.pulseops-map .leaflet-pane,
+.pulseops-map .leaflet-control,
+.pulseops-map .leaflet-top,
+.pulseops-map .leaflet-bottom {
+  /* Keep Leaflet's internal stacking order inside the map card so it can
+     never float above the PulseOps header/navigation. */
+  z-index: auto;
+}
+.pulseops-map .leaflet-map-pane { z-index: 1; }
+.pulseops-map .leaflet-control { z-index: 10; }
+.pulseops-map .leaflet-popup-pane { z-index: 20; }
+.pulseops-map .leaflet-tooltip-pane { z-index: 19; }
+.pulseops-map .leaflet-shadow-pane { z-index: 12; }
+.pulseops-map .leaflet-overlay-pane { z-index: 4; }
+.pulseops-map .leaflet-marker-pane { z-index: 6; }
+.pulseops-map .leaflet-tile-pane { z-index: 2; }
+.pulseops-map .leaflet-objects-pane { z-index: 7; }
+
+.pulseops-map-marker { background:transparent; border:0; }
+.pulseops-map-marker-core {
+  display:flex; align-items:center; justify-content:center; border-radius:999px;
+  background:rgba(37,99,235,.12); border:2px solid rgba(37,99,235,.55);
+  color:#0f172a; font:800 10px/1 var(--font-sans); box-shadow:0 0 0 5px rgba(37,99,235,.06);
+  transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+.pulseops-map-marker-core span { min-width:18px; height:18px; padding:0 4px; border-radius:999px; background:#fff; border:1px solid #dbe5f0; display:flex; align-items:center; justify-content:center; }
+.pulseops-map-marker-core.is-active { background:rgba(37,99,235,.24); box-shadow:0 0 0 8px rgba(37,99,235,.11); transform:scale(1.05); }
+.pulseops-map .leaflet-control-zoom a { width:32px; height:32px; line-height:30px; border-color:#e2e8f0; color:#334155; }
+.pulseops-map .leaflet-control-attribution { font-size:8px; }
+.pulseops-map .leaflet-popup-content-wrapper { border-radius:12px; box-shadow:0 10px 30px rgba(15,23,42,.16); }
+.pulseops-map .leaflet-popup-content { margin:12px 14px; }
+.pulseops-popup-title { font-weight:800; font-size:13px; color:#0f172a; }
+.pulseops-popup-sub { margin-top:2px; font-size:10px; color:#64748b; }
+.pulseops-popup-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:9px; }
+.pulseops-popup-grid > div { padding:7px 8px; border-radius:8px; background:#f8fafc; }
+.pulseops-popup-grid span { display:block; font-size:8px; text-transform:uppercase; letter-spacing:.08em; color:#94a3b8; font-weight:800; }
+.pulseops-popup-grid b { display:block; margin-top:2px; font-size:12px; color:#0f172a; }
+
+.dark .issue-filter { background:#0f172a; border-color:#1e293b; color:#94a3b8; }
+.dark .issue-filter.is-active { color:#f8fafc; border-color:#475569; }
+.dark .issue-filter b { background:#1e293b; color:#cbd5e1; }
+.dark .stage-received,.dark .stage-processing,.dark .stage-picking,.dark .stage-packing,.dark .stage-staging,.dark .stage-shipped { background:#0f172a; }
+.dark .pulseops-map .leaflet-control-zoom a { background:#0f172a; color:#e2e8f0; border-color:#1e293b; }
+
+
+/* V18 receiving readability: dense, scannable inbound cards inspired by the supplied reference. */
+.receiving-card { overflow: hidden; }
+.receiving-card-main { padding: 15px 16px 14px; }
+.receiving-card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
+.receiving-id { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:18px; line-height:1.1; font-weight:800; letter-spacing:-.02em; color:#0f172a; }
+.receiving-meta { margin-top:7px; font-size:12px; line-height:1.4; color:#64748b; }
+.receiving-total { flex:0 0 auto; text-align:right; padding-top:1px; }
+.receiving-total-value { font-size:21px; line-height:1; font-weight:800; letter-spacing:-.03em; color:#0f172a; }
+.receiving-total-label { margin-top:4px; font-size:9px; text-transform:uppercase; letter-spacing:.08em; font-weight:800; color:#94a3b8; }
+.receiving-items { display:flex; flex-wrap:wrap; gap:7px; margin-top:14px; }
+.receiving-item-chip { min-height:35px; display:inline-flex; align-items:center; gap:7px; padding:0 10px; border:1px solid #dbe3ed; background:#fff; border-radius:8px; color:#0f172a; cursor:pointer; transition:background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .15s ease; text-align:left; }
+.receiving-item-chip:hover { background:#f8fafc; border-color:#b9c8da; }
+.receiving-item-chip:focus-visible { outline:none; border-color:#0f172a; box-shadow:0 0 0 2px rgba(15,23,42,.09); }
+.receiving-item-chip.is-selected { background:#f8fafc; border-color:#94a3b8; box-shadow:0 0 0 1px #cbd5e1 inset; }
+.receiving-item-chip.is-complete { opacity:.62; }
+.receiving-item-dot { width:12px; height:12px; border-radius:999px; background:#0f172a; border:1px solid #cbd5e1; flex:0 0 auto; }
+.receiving-item-name { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:12px; line-height:1; font-weight:600; white-space:nowrap; }
+.receiving-item-qty { margin-left:auto; color:#64748b; font-size:12px; line-height:1; font-weight:700; white-space:nowrap; }
+.receiving-foot { display:flex; justify-content:space-between; align-items:flex-end; gap:14px; margin-top:14px; padding-top:12px; border-top:1px solid #eef2f7; }
+.receiving-footline { display:flex; flex-wrap:wrap; gap:6px; font-size:10px; font-weight:700; color:#64748b; }
+.receiving-updated { margin-top:3px; font-size:9px; color:#94a3b8; }
+.receiving-action { display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+.receiving-selected-label { max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; font-weight:800; color:#475569; }
+.receiving-qty-input { width:74px; text-align:right; min-height:38px; padding-left:9px; padding-right:9px; }
+.receiving-btn { min-height:38px; white-space:nowrap; }
+.receiving-recent { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
+.dark .receiving-id,.dark .receiving-total-value,.dark .receiving-item-name { color:#f8fafc; }
+.dark .receiving-meta,.dark .receiving-footline { color:#94a3b8; }
+.dark .receiving-item-chip { background:#0f172a; border-color:#334155; color:#e2e8f0; }
+.dark .receiving-item-chip:hover,.dark .receiving-item-chip.is-selected { background:#172033; border-color:#475569; }
+.dark .receiving-foot { border-top-color:#1e293b; }
+@media (max-width: 760px) {
+  .receiving-card-head { flex-direction:column; }
+  .receiving-total { align-self:flex-end; }
+  .receiving-foot { flex-direction:column; align-items:stretch; }
+  .receiving-action { justify-content:flex-start; }
+  .receiving-selected-label { max-width:100%; flex:1 1 100%; }
+  .receiving-item-name { white-space:normal; }
+}
+
+
+/* V19 readability polish: Problem Log, Shift Report and per-order Kanban navigation. */
+.problem-log-card { position: relative; }
+.problem-log-card-accent { position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--issue-color); }
+.problem-log-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+.problem-log-description { margin-top:10px; max-width:920px; color:#475569; font-size:13px; line-height:1.65; }
+.problem-log-meta { padding:9px 10px; border:1px solid #eef2f7; border-radius:9px; background:#f8fafc; min-width:0; }
+.problem-log-meta span { display:block; font-size:8px; text-transform:uppercase; letter-spacing:.08em; font-weight:800; color:#94a3b8; }
+.problem-log-meta b { display:block; margin-top:3px; font-size:10px; color:#334155; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.problem-log-guidance { margin-top:10px; padding:10px 12px; border:1px solid #dbeafe; border-radius:10px; background:#eff6ff; color:#334155; font-size:11px; line-height:1.5; display:flex; gap:8px; align-items:flex-start; }
+.problem-log-guidance-label { color:#1d4ed8; font-weight:800; white-space:nowrap; }
+.shift-report-layout { display:grid; grid-template-columns:260px minmax(0,1fr); gap:16px; align-items:start; }
+.shift-worker-picker { position:sticky; top:94px; }
+.shift-worker-card { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border:1px solid #e2e8f0; border-radius:12px; background:#fff; cursor:pointer; transition:.15s ease; }
+.shift-worker-card:hover { border-color:#bfdbfe; background:#f8fbff; }
+.shift-worker-card.is-selected { border-color:#3b82f6; background:#eff6ff; box-shadow:0 0 0 1px rgba(59,130,246,.08); }
+.shift-worker-avatar { width:34px; height:34px; display:flex; align-items:center; justify-content:center; border-radius:10px; background:#f1f5f9; color:#475569; }
+.shift-worker-presence { padding:3px 7px; border-radius:999px; font-size:8px; font-weight:800; border:1px solid #e2e8f0; }
+.shift-worker-presence.present { background:#ecfdf5; color:#047857; border-color:#a7f3d0; }
+.shift-worker-presence.off { background:#f8fafc; color:#64748b; }
+.shift-profile { background:linear-gradient(180deg,#ffffff,#fbfdff); }
+.shift-profile-avatar { width:50px; height:50px; display:flex; align-items:center; justify-content:center; border-radius:14px; background:#eff6ff; color:#2563eb; }
+.shift-date-chip { display:inline-flex; align-items:center; gap:5px; padding:4px 8px; border-radius:999px; background:#f8fafc; border:1px solid #e2e8f0; color:#64748b; font-size:9px; font-weight:700; }
+.shift-report-date { display:inline-flex; align-items:center; gap:7px; min-height:40px; padding:0 10px; border:1px solid #e2e8f0; border-radius:8px; background:#fff; }
+.shift-report-date input { border:0; outline:0; background:transparent; color:#334155; font-size:12px; font-weight:700; }
+.shift-event-row { display:flex; align-items:center; gap:11px; padding:12px 18px; }
+.shift-event-icon { width:30px; height:30px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+.shift-event-icon.error { background:#fef2f2; color:#dc2626; }
+.shift-event-icon.success { background:#ecfdf5; color:#059669; }
+.shift-event-icon.neutral { background:#eff6ff; color:#2563eb; }
+.kanban-order-stage-slider { position:relative; width:24px; min-height:128px; flex:0 0 24px; display:flex; justify-content:center; align-items:center; }
+.kanban-order-stage-track { position:absolute; left:11px; top:10px; bottom:10px; width:3px; border-radius:999px; background:#e2e8f0; overflow:hidden; }
+.kanban-order-stage-fill { position:absolute; left:0; bottom:0; width:100%; border-radius:999px; opacity:.9; transition:height .18s ease; }
+.kanban-order-stage-steps { position:relative; z-index:2; display:flex; flex-direction:column-reverse; justify-content:space-between; height:118px; }
+.kanban-order-stage-step { width:20px; height:18px; padding:0; border:0; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.kanban-order-stage-dot { width:8px; height:8px; border-radius:999px; background:#cbd5e1; border:2px solid #fff; box-shadow:0 0 0 1px #cbd5e1; transition:.15s ease; }
+.kanban-order-stage-step:hover .kanban-order-stage-dot { transform:scale(1.3); box-shadow:0 0 0 2px var(--stage-color); }
+.kanban-order-stage-step.is-passed .kanban-order-stage-dot { background:var(--stage-color); box-shadow:0 0 0 1px var(--stage-color); }
+.kanban-order-stage-step.is-current .kanban-order-stage-dot { width:12px; height:12px; box-shadow:0 0 0 3px color-mix(in srgb, var(--stage-color) 18%, transparent); }
+.kanban-order-stage-label { position:absolute; right:-2px; bottom:-1px; font-size:8px; line-height:1; font-weight:800; color:#94a3b8; writing-mode:vertical-rl; transform:rotate(180deg); }
+
+.dark .problem-log-description { color:#cbd5e1; }
+.dark .problem-log-meta { background:#0f172a; border-color:#1e293b; }
+.dark .problem-log-meta b { color:#e2e8f0; }
+.dark .problem-log-guidance { background:#13233a; border-color:#1e3a5f; color:#cbd5e1; }
+.dark .shift-worker-card,.dark .shift-profile,.dark .shift-report-date { background:#0f172a; border-color:#1e293b; color:#e2e8f0; }
+.dark .shift-worker-card.is-selected { background:#13233a; border-color:#3b82f6; }
+.dark .shift-worker-avatar { background:#1e293b; color:#cbd5e1; }
+.dark .shift-report-date input { color:#e2e8f0; }
+.dark .kanban-order-stage-track { background:#334155; }
+
+@media (max-width: 960px) {
+  .shift-report-layout { grid-template-columns:1fr; }
+  .shift-worker-picker { position:static; }
+}
+@media (max-width: 640px) {
+  .problem-log-meta { padding:8px; }
+  .problem-log-description { font-size:12px; }
+  .shift-report-date { width:100%; }
+  .shift-report-date input { width:100%; }
+}
+
+/* V19.3 — independently scrollable Kanban stages. Each pipeline column owns its
+   vertical viewport so scrolling one stage never moves the other stages. */
+.kanban-stage-columns {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(270px, 1fr));
+  gap: 12px;
+  align-items: stretch;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.kanban-stage-column {
+  min-width: 270px;
+  width: 270px;
+  height: clamp(430px, calc(100vh - 330px), 720px);
+  max-height: 720px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid #e2e8f0;
+  border-top: 3px solid var(--column-accent, #cbd5e1);
+  border-radius: 14px;
+  background: #f8fafc;
+  overflow: hidden;
+  scroll-margin-inline: 18px;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.kanban-stage-column.is-selected {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--column-accent) 16%, transparent), 0 8px 24px rgba(15,23,42,.06);
+}
+.kanban-stage-column-header {
+  flex: 0 0 auto;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 12px;
+  background: rgba(255,255,255,.96);
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  backdrop-filter: blur(6px);
+}
+.kanban-stage-column-count {
+  min-width: 26px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+}
+.kanban-stage-column-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.kanban-stage-column-body::-webkit-scrollbar { width: 8px; }
+.kanban-stage-column-body::-webkit-scrollbar-track { background: transparent; }
+.kanban-stage-column-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+.kanban-stage-column-body::-webkit-scrollbar-thumb:hover { background: #94a3b8; border: 2px solid transparent; background-clip: content-box; }
+.kanban-order-card { flex: 0 0 auto; }
+.kanban-order-interaction-row { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; align-items: start; margin-top: 11px; }
+.kanban-stage-columns .kanban-order-stage-slider { min-height: 116px; }
+.dark .kanban-stage-column { background: #0b1220; border-color: #1e293b; }
+.dark .kanban-stage-column-header { background: rgba(15,23,42,.96); border-color: #1e293b; }
+.dark .kanban-stage-column-count { background: #0f172a; border-color: #334155; color: #94a3b8; }
+.dark .kanban-stage-column-body::-webkit-scrollbar-thumb { background: #475569; }
+@media (max-width: 1200px) {
+  .kanban-stage-column { width: 285px; min-width: 285px; }
+  .kanban-stage-columns { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 285px; }
+}
+@media (max-width: 800px) {
+  .kanban-stage-column { height: 60vh; min-height: 390px; width: 300px; min-width: 300px; }
+  .kanban-stage-columns { grid-auto-columns: 300px; padding-bottom: 12px; }
+}
+
+/* V19.4 Worker Mode sizing fix: prevent the dark work card from stretching to the queue height. */
+.worker-work-card { height: fit-content; min-height: 0; align-self: start; }
+.worker-queue-card { max-height: 620px; overflow: hidden; }
+.worker-queue-card > div:last-child { max-height: 560px; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; padding-right: 2px; }
+@media (max-width: 1024px) {
+  .worker-queue-card { max-height: none; }
+  .worker-queue-card > div:last-child { max-height: 360px; }
+}
+
+/* V21 — dark mode accessibility/readability pass. The application uses a
+   class-based night mode, so these overrides intentionally normalize the
+   Tailwind slate utilities used throughout the operational screens. The goal
+   is to preserve the existing hierarchy while preventing low-contrast text,
+   controls, borders, and surfaces on dark backgrounds. */
+.dark {
+  color-scheme: dark;
+}
+.dark body,
+.dark .min-h-screen {
+  background: #0a0f1a;
+  color: #e5e7eb;
+}
+
+/* Core slate text */
+.dark .text-slate-950,
+.dark .text-slate-900,
+.dark .text-slate-800,
+.dark .text-slate-700 { color: #f1f5f9 !important; }
+.dark .text-slate-600 { color: #cbd5e1 !important; }
+.dark .text-slate-500 { color: #a8b4c5 !important; }
+.dark .text-slate-400 { color: #94a3b8 !important; }
+.dark .text-slate-300 { color: #cbd5e1 !important; }
+
+/* Light surfaces → elevated dark surfaces */
+.dark .bg-white { background-color: #0f172a !important; }
+.dark .bg-slate-50 { background-color: #0b1220 !important; }
+.dark .bg-slate-100 { background-color: #162033 !important; }
+.dark .bg-slate-200 { background-color: #1e293b !important; }
+.dark .bg-slate-300 { background-color: #334155 !important; }
+
+/* Borders / dividers */
+.dark .border-slate-100,
+.dark .border-slate-200 { border-color: #263449 !important; }
+.dark .border-slate-300 { border-color: #334155 !important; }
+.dark .border-slate-400 { border-color: #475569 !important; }
+.dark .border-slate-900 { border-color: #64748b !important; }
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: #263449 !important; }
+
+/* Common blue/indigo/purple/amber/red status text remains saturated enough
+   to read against dark surfaces. */
+.dark .text-blue-600 { color: #60a5fa !important; }
+.dark .text-blue-700 { color: #93c5fd !important; }
+.dark .text-indigo-600 { color: #818cf8 !important; }
+.dark .text-indigo-700 { color: #a5b4fc !important; }
+.dark .text-purple-600 { color: #c084fc !important; }
+.dark .text-purple-700 { color: #d8b4fe !important; }
+.dark .text-sky-600 { color: #7dd3fc !important; }
+.dark .text-sky-400 { color: #7dd3fc !important; }
+.dark .text-sky-300 { color: #bae6fd !important; }
+.dark .text-emerald-600 { color: #34d399 !important; }
+.dark .text-emerald-700 { color: #6ee7b7 !important; }
+.dark .text-amber-600 { color: #fbbf24 !important; }
+.dark .text-amber-700 { color: #fcd34d !important; }
+.dark .text-amber-800 { color: #fde68a !important; }
+.dark .text-orange-600 { color: #fb923c !important; }
+.dark .text-orange-700 { color: #fdba74 !important; }
+.dark .text-red-600 { color: #f87171 !important; }
+.dark .text-red-700 { color: #fca5a5 !important; }
+.dark .text-red-800 { color: #fecaca !important; }
+.dark .text-red-900 { color: #fee2e2 !important; }
+
+/* Status pills and selected/filter controls */
+.dark .bg-blue-50 { background-color: #12233d !important; }
+.dark .bg-blue-100 { background-color: #17345d !important; }
+.dark .bg-indigo-50 { background-color: #211f4a !important; }
+.dark .bg-purple-50 { background-color: #2b183c !important; }
+.dark .bg-amber-50 { background-color: #2a2110 !important; }
+.dark .bg-red-50 { background-color: #2b1518 !important; }
+.dark .bg-emerald-50 { background-color: #0d2a20 !important; }
+.dark .bg-orange-50 { background-color: #2a1a0f !important; }
+
+.dark .border-blue-100,
+.dark .border-blue-200,
+.dark .border-blue-300,
+.dark .border-blue-400 { border-color: #24456f !important; }
+.dark .border-indigo-200 { border-color: #3a3672 !important; }
+.dark .border-purple-200,
+.dark .border-purple-300 { border-color: #55306f !important; }
+.dark .border-amber-200,
+.dark .border-amber-300 { border-color: #624915 !important; }
+.dark .border-red-200,
+.dark .border-red-300 { border-color: #6b2930 !important; }
+.dark .border-emerald-200,
+.dark .border-emerald-300 { border-color: #185744 !important; }
+
+/* Interactive controls */
+.dark button:not([class*="bg-white"]),
+.dark [role="button"] { -webkit-tap-highlight-color: transparent; }
+.dark .hover\:bg-slate-50:hover { background-color: #162033 !important; }
+.dark .hover\:bg-slate-100:hover { background-color: #1e293b !important; }
+.dark .hover\:bg-slate-800:hover { background-color: #334155 !important; }
+.dark .hover\:text-slate-900:hover { color: #ffffff !important; }
+.dark .hover\:text-slate-700:hover { color: #f8fafc !important; }
+.dark .hover\:text-slate-600:hover { color: #e2e8f0 !important; }
+
+/* Form elements and native controls */
+.dark input,
+.dark textarea,
+.dark select,
+.dark option {
+  background-color: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-color: #334155;
+}
+.dark input::placeholder,
+.dark textarea::placeholder { color: #64748b !important; opacity: 1; }
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #60a5fa !important;
+  box-shadow: 0 0 0 1px rgba(96,165,250,.35) !important;
+}
+
+/* Common soft panels used by cards, tables and summaries */
+.dark .bg-slate-50\/45,
+.dark .bg-slate-50\/60,
+.dark .bg-slate-950\/55,
+.dark .bg-slate-950\/70,
+.dark .bg-slate-950\/80 {
+  background-color: rgba(15,23,42,.82) !important;
+}
+
+/* Worker queue and cards */
+.dark .kanban-order-card,
+.dark .worker-queue-card,
+.dark .receiving-card,
+.dark .problem-log-card,
+.dark .shift-report-date,
+.dark .shift-worker-card,
+.dark .ops-card {
+  color: #e2e8f0;
+}
+.dark .kanban-order-stage-track { background: #475569; }
+.dark .kanban-range { background: linear-gradient(to right, var(--range-color, #60a5fa) 0 var(--range-progress, 0%), #334155 var(--range-progress, 0%) 100%); }
+.dark .kanban-range::-moz-range-track { background: #334155; }
+.dark .kanban-range::-moz-range-thumb { border-color: #e2e8f0; background: #0f172a; }
+.dark .kanban-range::-webkit-slider-thumb { border-color: #e2e8f0; background: #0f172a; }
+
+/* Map popups, country cards and map controls */
+.dark .pulseops-map { background: #172554; }
+.dark .pulseops-map .leaflet-control-attribution { background: rgba(15,23,42,.88); color: #94a3b8; }
+.dark .pulseops-map .leaflet-control-attribution a { color: #93c5fd; }
+.dark .pulseops-map .leaflet-popup-content-wrapper,
+.dark .pulseops-map .leaflet-popup-tip { background: #0f172a; color: #e2e8f0; }
+.dark .pulseops-popup-title { color: #f8fafc; }
+.dark .pulseops-popup-sub { color: #94a3b8; }
+.dark .pulseops-popup-grid > div { background: #162033; }
+.dark .pulseops-popup-grid span { color: #64748b; }
+.dark .pulseops-popup-grid b { color: #f1f5f9; }
+
+/* Keep stage-specific colours readable in night mode. */
+.dark .stage-received .metric-value,
+.dark .stage-received .stage-title { color:#cbd5e1 !important; }
+.dark .stage-processing .metric-value,
+.dark .stage-processing .stage-title { color:#93c5fd !important; }
+.dark .stage-picking .metric-value,
+.dark .stage-picking .stage-title { color:#a5b4fc !important; }
+.dark .stage-packing .metric-value,
+.dark .stage-packing .stage-title { color:#fcd34d !important; }
+.dark .stage-staging .metric-value,
+.dark .stage-staging .stage-title { color:#d8b4fe !important; }
+.dark .stage-shipped .metric-value,
+.dark .stage-shipped .stage-title { color:#6ee7b7 !important; }
+
+/* Ensure headings, labels and secondary metadata in custom components are
+   readable even when a component uses a hard-coded light text colour. */
+.dark .receiving-id,
+.dark .receiving-total-value,
+.dark .section-title,
+.dark .ops-page-title { color:#f8fafc; }
+.dark .receiving-meta,
+.dark .receiving-total-label,
+.dark .receiving-item-qty,
+.dark .problem-log-description,
+.dark .shift-date-chip,
+.dark .shift-event-row,
+.dark .shift-report-date input { color:#cbd5e1; }
+.dark .field-label { color:#cbd5e1; }
+
+/* Scrollbars */
+.dark * { scrollbar-color: #475569 #0b1220; }
+.dark *::-webkit-scrollbar { width: 9px; height: 9px; }
+.dark *::-webkit-scrollbar-track { background: #0b1220; }
+.dark *::-webkit-scrollbar-thumb { background: #475569; border-radius: 999px; border: 2px solid #0b1220; }
+.dark *::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+/* V23 — comprehensive dark-mode readability correction.
+   The app shell places `dark` and `text-slate-900` on the same root element,
+   so descendants without their own text utility inherited the light-theme
+   slate text color. Keep the root readable and explicitly remap common
+   slate utilities, form controls, table headers and Kanban labels in dark mode. */
+html.dark {
+  color-scheme: dark;
+  background: #0a0f1a;
+  color: #e2e8f0;
+}
+html.dark body {
+  background: #0a0f1a;
+  color: #e2e8f0;
+}
+html.dark .min-h-screen {
+  color: #e2e8f0;
+}
+html.dark .min-h-screen.text-slate-900 {
+  color: #e2e8f0;
+}
+
+.dark .text-slate-300 { color: #cbd5e1 !important; }
+.dark .text-slate-400 { color: #a8b3c5 !important; }
+.dark .text-slate-500 { color: #94a3b8 !important; }
+.dark .text-slate-600 { color: #c0cad8 !important; }
+.dark .text-slate-700 { color: #d6deea !important; }
+.dark .text-slate-800 { color: #e8edf5 !important; }
+.dark .text-slate-900 { color: #f8fafc !important; }
+
+.dark .bg-white { background-color: #0f172a !important; }
+.dark .bg-slate-50 { background-color: #0b1220 !important; }
+.dark .bg-slate-100 { background-color: #172033 !important; }
+.dark .border-slate-100,
+.dark .border-slate-200,
+.dark .border-slate-300 { border-color: #273449 !important; }
+
+.dark .hover\:bg-slate-50:hover { background-color: #162033 !important; }
+.dark .hover\:bg-white:hover { background-color: #172033 !important; }
+
+.dark input,
+.dark select,
+.dark textarea {
+  color: #e2e8f0 !important;
+  background-color: #0f172a !important;
+  border-color: #334155;
+}
+.dark option {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #71809a !important;
+  opacity: 1;
+}
+
+/* Kanban headers and passive labels should never inherit the light theme. */
+.dark .kanban-stage-column,
+.dark .kanban-stage-column-header,
+.dark .kanban-stage-column-body {
+  color: #e2e8f0;
+}
+.dark .kanban-stage-column-header .truncate,
+.dark .kanban-stage-column-header .font-bold {
+  color: #f8fafc !important;
+}
+.dark .kanban-order-card {
+  color: #e2e8f0;
+}
+.dark .kanban-order-card .font-mono.font-bold,
+.dark .kanban-order-card .font-bold {
+  color: #f8fafc;
+}
+.dark .kanban-order-card .text-slate-400,
+.dark .kanban-order-card .text-slate-500,
+.dark .kanban-order-card .text-slate-600 {
+  color: #a8b3c5 !important;
+}
+
+/* Table mode: make headings, metadata and actions legible on dark surfaces. */
+.dark table thead,
+.dark table th {
+  color: #a8b3c5 !important;
+}
+.dark table tbody td {
+  color: #e2e8f0;
+}
+.dark table tbody tr:hover {
+  background: #162033 !important;
+}
+
+/* Common small labels / muted text used outside explicit utility classes. */
+.dark .metric-label,
+.dark .field-label,
+.dark .ops-page-subtitle,
+.dark .receiving-meta,
+.dark .receiving-total-label,
+.dark .problem-log-description,
+.dark .shift-date-chip,
+.dark .shift-report-date input {
+  color: #a8b3c5 !important;
+}
+.dark .section-title,
+.dark .receiving-id,
+.dark .receiving-total-value,
+.dark .problem-log-meta b,
+.dark .pulseops-popup-title,
+.dark .pulseops-popup-grid b {
+  color: #f8fafc !important;
+}
+
+/* Unstyled buttons inherit readable text; explicit primary text colors still win. */
+.dark button {
+  color: #e2e8f0;
+}
+.dark button:disabled {
+  color: #64748b;
+}
+.dark .ops-primary,
+.dark .bg-slate-900,
+.dark .bg-slate-950 {
+  color: #fff !important;
+}
+
+/* Stage slider / Kanban progress tracks. */
+.dark .kanban-order-stage-track { background: #475569; }
+.dark .kanban-order-stage-label { color: #a8b3c5; }
+.dark .kanban-order-stage-dot { border-color: #0f172a; box-shadow: 0 0 0 1px #64748b; }
+.dark .kanban-range {
+  background: linear-gradient(to right, var(--range-color, #60a5fa) 0 var(--range-progress, 0%), #334155 var(--range-progress, 0%) 100%);
+}
+.dark .kanban-range::-webkit-slider-thumb { border-color: #0f172a; background: #e2e8f0; }
+
+/* Dark map popups remain readable. */
+.dark .pulseops-map .leaflet-popup-content-wrapper,
+.dark .pulseops-map .leaflet-popup-tip {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+.dark .pulseops-popup-title { color: #f8fafc !important; }
+.dark .pulseops-popup-sub { color: #a8b3c5 !important; }
+.dark .pulseops-popup-grid > div { background: #172033; }
+.dark .pulseops-popup-grid span { color: #94a3b8 !important; }
+.dark .pulseops-popup-grid b { color: #f8fafc !important; }
+
+
+/* V25 — final product-wide visual polish. The goal is calm hierarchy,
+   predictable controls, balanced cards, and readable dense operations UI. */
+:root {
+  --ui-radius: 14px;
+  --ui-radius-sm: 10px;
+  --ui-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 24px rgba(15,23,42,.035);
+  --ui-shadow-hover: 0 10px 28px rgba(15,23,42,.075);
+}
+
+body { line-height: 1.45; }
+button, input, select, textarea { font-family: inherit; }
+button { text-wrap: balance; }
+
+.ops-page {
+  width: 100%;
+  padding: 28px 32px 44px;
+  max-width: 1440px;
+}
+.ops-page-header {
+  min-height: 54px;
+  padding-bottom: 22px;
+  align-items: center;
+}
+.page-header-title-row { min-height: 36px; }
+.page-header-actions { display:flex; align-items:center; gap:10px; }
+.ops-page-title { font-size: clamp(27px, 2.2vw, 32px); line-height:1.08; }
+
+.ops-card {
+  border-radius: var(--ui-radius);
+  box-shadow: var(--ui-shadow);
+  background:#fff;
+}
+.ops-card + .ops-card { scroll-margin-top: 104px; }
+
+.ops-primary,
+.ops-secondary {
+  min-height: 40px;
+  border-radius: 10px;
+  white-space: nowrap;
+  line-height: 1;
+}
+.ops-primary svg,
+.ops-secondary svg { flex: 0 0 auto; }
+.ops-primary:focus-visible,
+.ops-secondary:focus-visible,
+.pulseops-nav-button:focus-visible,
+.orders-view-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59,130,246,.18);
+}
+
+.dashboard-kpi-grid { align-items: stretch; }
+.dashboard-kpi-card {
+  min-height: 112px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+.dashboard-kpi-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--ui-shadow-hover);
+  border-color:#d7e0ea;
+}
+.pipeline-stage-card {
+  min-height: 98px;
+  position:relative;
+  overflow:hidden;
+}
+.pipeline-stage-card::after {
+  content:'';
+  position:absolute;
+  inset:auto 0 0;
+  height:3px;
+  background:currentColor;
+  opacity:.2;
+  transform:scaleX(.35);
+  transform-origin:left;
+  transition:transform .18s ease, opacity .18s ease;
+}
+.pipeline-stage-card:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(15,23,42,.06); }
+.pipeline-stage-card:hover::after { transform:scaleX(1); opacity:.38; }
+.team-roster-card { background:#fff; }
+
+.orders-toolbar {
+  gap: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}
+.orders-toolbar .ops-field { min-height: 42px; }
+.orders-toolbar > span { white-space: nowrap; }
+.orders-view-toggle { min-width: 96px; justify-content:center; }
+.orders-table-wrap { overflow:auto; }
+.orders-table { min-width: 980px; }
+.orders-table th { white-space:nowrap; }
+.orders-table td { vertical-align:middle; }
+.orders-table tbody tr { transition:background .12s ease; }
+.orders-table tbody tr:hover { background:#f8fbff; }
+.kanban-order-card {
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  min-height: 288px;
+  border-color:#e5eaf0;
+  box-shadow: 0 1px 2px rgba(15,23,42,.035);
+  transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
+}
+.kanban-order-card:hover {
+  transform:translateY(-1px);
+  box-shadow: 0 8px 20px rgba(15,23,42,.07);
+}
+.kanban-order-card button,
+.kanban-order-card a { white-space:nowrap; }
+.kanban-order-card .kanban-order-interaction-row { margin-top:auto; padding-top:10px; }
+
+.kanban-stage-column {
+  border-radius: 15px;
+  background:#f7f9fc;
+}
+.kanban-stage-column-header { min-height:54px; padding:12px 14px; }
+.kanban-stage-column-body { padding:10px; }
+
+.stock-header-search { max-width:380px; }
+.stock-header-search .ops-field { border-radius:11px; }
+.stock-search-icon { border-radius:9px !important; }
+
+.receiving-card-main { padding:17px 18px 15px; }
+.receiving-item-chip { min-height:34px; }
+.receiving-foot { margin-top:15px; }
+
+.problem-log-card {
+  border-radius:14px;
+  box-shadow: var(--ui-shadow);
+}
+.problem-log-card:hover { box-shadow: var(--ui-shadow-hover); }
+.problem-log-description { max-width: 960px; }
+
+.shift-worker-card { min-height:62px; }
+.shift-profile { border-radius:14px; }
+.shift-event-row { min-height:56px; }
+
+.command-card { overflow:hidden; }
+.command-slider { min-height:38px; padding:5px 7px; border:1px solid #e2e8f0; border-radius:10px; background:#fbfdff; }
+.command-slider input[type=range] { accent-color:#2563eb; }
+
+/* Make filter/select clusters feel like a deliberate control bar. */
+.ops-page select.ops-field { min-width: 132px; }
+
+/* Light mode table/form contrast. */
+table thead th { letter-spacing:.075em; }
+input[type="checkbox"] { accent-color:#2563eb; }
+
+/* Dark mode — keep the same refined hierarchy without muddy surfaces. */
+.dark .ops-card { background:#0f172a; border-color:#253247; box-shadow: 0 1px 2px rgba(0,0,0,.18), 0 10px 28px rgba(0,0,0,.14); }
+.dark .dashboard-kpi-card:hover,
+.dark .kanban-order-card:hover,
+.dark .problem-log-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,.22); }
+.dark .orders-toolbar { background:linear-gradient(180deg,#0f172a 0%,#0d1524 100%); }
+.dark .orders-table tbody tr:hover { background:#121d2e !important; }
+.dark .pipeline-stage-card::after { opacity:.28; }
+.dark .team-roster-card { background:#101a2a; border-color:#263449; }
+.dark .command-slider { background:#101a2a; border-color:#2b3a50; }
+.dark .ops-primary { box-shadow: 0 2px 8px rgba(0,0,0,.16); }
+.dark .pulseops-nav-button { background:#0f172a; color:#cbd5e1; border-color:#263449; }
+.dark .pulseops-nav-button:hover { background:#152033; border-color:#35506e; color:#f8fafc; }
+.dark .pulseops-nav-button[class*="bg-blue-50"] { background:#15305a !important; border-color:#3b82f6 !important; color:#f8fafc !important; }
+
+@media (max-width: 960px) {
+  .ops-page { padding:24px 20px 36px; }
+  .ops-page-header { align-items:flex-start; }
+  .page-header-actions { width:auto; }
+}
+@media (max-width: 700px) {
+  .ops-page { padding:20px 14px 30px; }
+  .ops-page-header { min-height:0; padding-bottom:18px; }
+  .page-header-actions { width:100%; flex-wrap:wrap; }
+  .page-header-actions > * { max-width:100%; }
+  .dashboard-kpi-card { min-height:104px; }
+  .orders-toolbar { padding:12px; }
+  .orders-toolbar > span { margin-left:0; width:100%; }
+}
+
+
+/* V26 — Orders toolbar refinement: compact, balanced controls with clear hierarchy. */
+.orders-toolbar {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:18px;
+  padding:14px;
+  align-items:center;
+}
+.orders-toolbar-primary { min-width:0; display:grid; gap:10px; }
+.orders-search-field { position:relative; display:block; }
+.orders-search-field .ops-field { padding-left:40px; padding-right:40px; min-height:44px; }
+.orders-search-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); width:17px; height:17px; color:#64748b; z-index:2; pointer-events:none; }
+.orders-search-clear { position:absolute; right:9px; top:50%; transform:translateY(-50%); width:27px; height:27px; border:0; border-radius:7px; background:transparent; color:#64748b; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:18px; line-height:1; }
+.orders-search-clear:hover { background:#f1f5f9; color:#0f172a; }
+.orders-filter-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.orders-filter-grid .ops-field { min-height:40px; }
+.orders-toolbar-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; }
+.orders-result-count { display:flex; align-items:baseline; gap:6px; min-width:126px; margin-right:2px; white-space:nowrap; color:#64748b; font-size:11px; }
+.orders-result-count strong { color:#0f172a; font-size:14px; font-weight:800; }
+.orders-selected-count { padding-left:7px; margin-left:1px; border-left:1px solid #e2e8f0; color:#2563eb; font-weight:800; }
+.orders-action-button { min-height:40px; padding:0 13px; font-size:11px; }
+.orders-reset-button { min-height:40px; display:inline-flex; align-items:center; gap:6px; padding:0 10px; border:1px solid #e2e8f0; border-radius:10px; background:#fff; color:#64748b; font-size:11px; font-weight:800; cursor:pointer; }
+.orders-reset-button:hover { border-color:#cbd5e1; color:#0f172a; background:#f8fafc; }
+.ops-page-header { padding-bottom:24px; }
+
+.dark .orders-search-icon { color:#94a3b8; }
+.dark .orders-search-clear:hover { background:#1e293b; color:#f8fafc; }
+.dark .orders-selected-count { border-left-color:#334155; color:#60a5fa; }
+.dark .orders-reset-button { background:#0f172a; border-color:#334155; color:#94a3b8; }
+.dark .orders-reset-button:hover { background:#172033; border-color:#475569; color:#f8fafc; }
+.dark .orders-result-count strong { color:#f8fafc; }
+
+@media (max-width: 1080px) {
+  .orders-toolbar { grid-template-columns:1fr; }
+  .orders-toolbar-actions { justify-content:flex-start; }
+  .orders-result-count { margin-right:auto; }
+}
+@media (max-width: 700px) {
+  .orders-filter-grid { grid-template-columns:1fr; }
+  .orders-toolbar { padding:12px; gap:12px; }
+  .orders-toolbar-actions { align-items:stretch; }
+  .orders-result-count { width:100%; margin-right:0; }
+  .orders-action-button, .orders-reset-button { flex:1 1 auto; justify-content:center; }
+}
+
+/* V27 — consolidated Orders action card: view controls and batch actions share one aligned control surface. */
+.orders-toolbar-footer {
+  display:grid;
+  grid-template-columns:auto auto minmax(0,1fr);
+  align-items:center;
+  gap:12px;
+  padding-top:12px;
+  border-top:1px solid #eef2f7;
+}
+.orders-view-switcher {
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  padding:3px;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  background:#f8fafc;
+}
+.orders-view-switcher .orders-view-toggle {
+  min-width:86px;
+  min-height:36px;
+  padding:0 11px;
+  color:#64748b;
+  border:1px solid transparent;
+  background:transparent;
+  transition:background .14s ease,color .14s ease,box-shadow .14s ease,border-color .14s ease;
+}
+.orders-view-switcher .orders-view-toggle:hover { color:#0f172a; background:#fff; }
+.orders-view-switcher .orders-view-toggle.is-active {
+  color:#0f172a;
+  background:#fff;
+  border-color:#dbe3ec;
+  box-shadow:0 1px 2px rgba(15,23,42,.06);
+}
+.orders-toolbar-actions { min-width:0; }
+.orders-action-button { min-width:144px; white-space:nowrap; justify-content:center; }
+.orders-action-count {
+  min-width:17px;
+  height:17px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin-left:-2px;
+  padding:0 4px;
+  border-radius:999px;
+  font-size:9px;
+  background:rgba(255,255,255,.12);
+}
+.ops-secondary .orders-action-count { background:#eef2f7; color:#475569; }
+.ops-primary .orders-action-count { background:rgba(255,255,255,.13); color:#fff; }
+.kanban-stage-select {
+  min-height:26px;
+  padding:0 7px;
+  border:1px solid #e2e8f0;
+  border-radius:7px;
+  background:#fff;
+  color:#64748b;
+  cursor:pointer;
+}
+.kanban-stage-select:hover { color:#0f172a; border-color:#cbd5e1; }
+.kanban-order-select { accent-color:#2563eb; cursor:pointer; }
+.kanban-order-card.is-selected { box-shadow:0 0 0 2px rgba(37,99,235,.16), 0 8px 20px rgba(15,23,42,.07); }
+.dark .orders-toolbar-footer { border-top-color:#243044; }
+.dark .orders-view-switcher { background:#111827; border-color:#2b394e; }
+.dark .orders-view-switcher .orders-view-toggle { color:#94a3b8; }
+.dark .orders-view-switcher .orders-view-toggle:hover { color:#f8fafc; background:#172033; }
+.dark .orders-view-switcher .orders-view-toggle.is-active { color:#f8fafc; background:#1b2739; border-color:#334155; }
+.dark .orders-action-count { background:rgba(255,255,255,.08); }
+.dark .ops-secondary .orders-action-count { background:#1e293b; color:#cbd5e1; }
+.dark .kanban-stage-select { background:#111827; border-color:#334155; color:#94a3b8; }
+.dark .kanban-stage-select:hover { background:#172033; color:#f8fafc; border-color:#475569; }
+
+@media (max-width:1080px) {
+  .orders-toolbar-footer { grid-template-columns:auto 1fr; }
+  .orders-toolbar-actions { grid-column:1 / -1; justify-content:flex-start; }
+}
+@media (max-width:700px) {
+  .orders-toolbar-footer { grid-template-columns:1fr; }
+  .orders-view-switcher { width:100%; }
+  .orders-view-switcher .orders-view-toggle { flex:1 1 50%; }
+  .orders-result-count { width:100%; }
+  .orders-toolbar-actions { width:100%; display:grid; grid-template-columns:1fr 1fr; }
+  .orders-action-button, .orders-reset-button { width:100%; min-width:0; }
+  .orders-reset-button { grid-column:1 / -1; }
+}
+
+/* V27: shared Orders action card — keep selection state and batch actions legible. */
+.orders-selection-note {
+  padding-left: 7px;
+  margin-left: 1px;
+  border-left: 1px solid #e2e8f0;
+  color: #b45309;
+  font-weight: 800;
+}
+.dark .orders-selection-note { border-left-color:#334155; color:#fbbf24; }
+
+/* V28 — user identity card aligned with the live clock card. */
+.pulseops-user-card {
+  min-width: 176px;
+  min-height: 56px;
+  box-sizing: border-box;
+  background: #f8fbff;
+  border-color: #dbeafe;
+}
+.pulseops-user-card:hover {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+.pulseops-user-avatar {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+.pulseops-user-name { color: #0f172a; }
+.pulseops-user-meta { color: #64748b; }
+.pulseops-user-dot { background: #10b981; box-shadow: 0 0 0 3px #dcfce7; }
+.dark .pulseops-user-card {
+  background: #0f172a;
+  border-color: #1e3a8a;
+}
+.dark .pulseops-user-card:hover {
+  background: #13213a;
+  border-color: #2563eb;
+}
+.dark .pulseops-user-avatar {
+  background: #172554;
+  color: #93c5fd;
+  border-color: #1e40af;
+}
+.dark .pulseops-user-name { color: #f8fafc; }
+.dark .pulseops-user-meta { color: #94a3b8; }
+.dark .pulseops-user-dot { background: #34d399; box-shadow: 0 0 0 3px #062c1f; }
+@media (max-width: 1180px) and (min-width: 901px) {
+  .pulseops-user-card { min-width: 158px; }
+  .pulseops-user-name { max-width: 96px; }
+}
+
+
+/* V29 — final interface polish: align the identity/time utilities and make the Orders controls a compact two-row control surface. */
+.pulseops-header-utility { gap: 10px; }
+.pulseops-clock,
+.pulseops-user-card { min-height: 58px; }
+.pulseops-clock { width: 188px; flex: 0 0 188px; }
+.pulseops-user-card { width: 198px; min-width: 198px; flex: 0 0 198px; padding: 8px 12px; }
+.pulseops-user-avatar { width: 38px; height: 38px; }
+.pulseops-user-name { max-width: 142px !important; }
+.pulseops-user-meta { white-space: nowrap; }
+.pulseops-user-dot { flex: 0 0 auto; }
+
+.orders-toolbar {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  background: linear-gradient(180deg,#ffffff 0%,#fbfdff 100%);
+}
+.orders-toolbar-top {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 16px;
+  align-items: center;
+}
+.orders-toolbar-top-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  min-width: 0;
+}
+.orders-search-field .ops-field {
+  min-height: 46px;
+  padding-left: 44px;
+  padding-right: 42px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+.orders-search-icon { left: 14px; width: 18px; height: 18px; color:#64748b; }
+.orders-search-clear { right: 10px; width:28px; height:28px; }
+.orders-toolbar-bottom {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 14px;
+  align-items: center;
+}
+.orders-filter-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
+.orders-filter-grid .ops-field { min-height: 42px; }
+.orders-toolbar-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  flex-wrap: nowrap;
+}
+.orders-action-button { min-width: 150px; min-height: 42px; padding: 0 14px; }
+.orders-reset-button { min-height: 42px; padding: 0 12px; }
+.orders-view-switcher {
+  padding: 4px;
+  gap: 3px;
+  border-radius: 12px;
+}
+.orders-view-switcher .orders-view-toggle { min-width: 90px; min-height: 38px; padding: 0 12px; }
+.orders-result-count { min-width: auto; margin: 0; font-size: 12px; }
+.orders-result-count strong { font-size: 15px; }
+.orders-selected-count { padding-left: 9px; margin-left: 3px; }
+
+.dark .orders-toolbar { background: linear-gradient(180deg,#0f172a 0%,#0c1523 100%); }
+.dark .orders-search-field .ops-field { background:#0b1422; border-color:#2c3b50; color:#f8fafc; }
+.dark .orders-search-field .ops-field::placeholder { color:#8391a5; }
+.dark .pulseops-user-card { background:#0e1828; border-color:#24416a; }
+.dark .pulseops-user-card:hover { background:#13213a; }
+
+@media (max-width: 1180px) and (min-width: 901px) {
+  .pulseops-clock { width: 174px; flex-basis:174px; }
+  .pulseops-user-card { width: 184px; min-width:184px; flex-basis:184px; }
+  .pulseops-user-name { max-width:128px !important; }
+  .orders-toolbar-top { grid-template-columns:minmax(0,1fr) auto; }
+  .orders-toolbar-bottom { grid-template-columns:1fr; }
+  .orders-toolbar-actions { justify-content:flex-start; }
+}
+@media (max-width: 900px) {
+  .orders-toolbar-top,
+  .orders-toolbar-bottom { grid-template-columns:1fr; }
+  .orders-toolbar-top-actions { justify-content:space-between; }
+  .orders-toolbar-actions { justify-content:flex-start; flex-wrap:wrap; }
+}
+@media (max-width: 700px) {
+  .pulseops-clock { width: auto; flex:1 1 auto; }
+  .pulseops-user-card { width:auto; min-width:0; flex:1 1 auto; }
+  .orders-toolbar { padding:12px; }
+  .orders-toolbar-top-actions { flex-wrap:wrap; }
+  .orders-view-switcher { width:100%; }
+  .orders-view-switcher .orders-view-toggle { flex:1 1 50%; }
+  .orders-filter-grid { grid-template-columns:1fr; }
+  .orders-toolbar-actions { display:grid; grid-template-columns:1fr 1fr; width:100%; }
+  .orders-action-button, .orders-reset-button { width:100%; min-width:0; }
+  .orders-reset-button { grid-column:1 / -1; }
+}
+
+
+/* V30 — streamlined header: dashboard owns sync context; header focuses on identity and global actions. */
+.dashboard-sync-card {
+  min-width: 166px;
+  min-height: 72px;
+  padding: 10px 14px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: center;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  background: linear-gradient(180deg,#f8fbff 0%,#eff6ff 100%);
+  box-shadow: 0 1px 2px rgba(15,23,42,.03);
+}
+.dashboard-sync-status { display:flex; align-items:center; gap:7px; min-width:0; }
+.dashboard-sync-dot { width:8px; height:8px; border-radius:999px; background:#10b981; box-shadow:0 0 0 4px #dcfce7; flex:0 0 auto; }
+.dashboard-sync-label { font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:#64748b; font-weight:800; white-space:nowrap; }
+.dashboard-sync-time { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:16px; font-weight:800; letter-spacing:.02em; color:#1d4ed8; white-space:nowrap; text-align:right; }
+.dashboard-sync-date { grid-column:1/-1; justify-self:start; padding:3px 7px; border-radius:999px; border:1px solid #bfdbfe; background:#dbeafe; color:#1e40af; font-size:9px; font-weight:800; letter-spacing:.05em; white-space:nowrap; }
+.dark .dashboard-sync-card { background:linear-gradient(180deg,#0f172a 0%,#0d1626 100%); border-color:#294a7a; }
+.dark .dashboard-sync-label { color:#94a3b8; }
+.dark .dashboard-sync-time { color:#93c5fd; }
+.dark .dashboard-sync-date { background:#172554; border-color:#1e40af; color:#bfdbfe; }
+
+/* Header identity is intentionally independent from time/sync so the top bar stays quiet and balanced. */
+.pulseops-header-utility { gap: 10px; }
+.pulseops-user-card { min-height:58px; }
+
+/* V30 — action buttons: predictable icon/text/count spacing and touch-friendly hit targets. */
+.orders-toolbar-actions { gap: 12px; }
+.orders-action-button {
+  min-width: 156px;
+  padding: 0 15px;
+  gap: 8px;
+  letter-spacing: -.005em;
+}
+.orders-action-button svg { width: 16px; height:16px; flex:0 0 auto; }
+.orders-action-count { margin-left: 2px; }
+
+@media (max-width: 1180px) and (min-width: 901px) {
+  .orders-action-button { min-width: 148px; }
+}
+@media (max-width: 700px) {
+  .dashboard-sync-card { width:100%; min-width:0; }
+}

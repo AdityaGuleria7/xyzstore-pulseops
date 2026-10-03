@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: xyzstore-pulseops
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: PULSEOPS_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: PACKER_EMAIL
+        sync: false
+      - key: PACKER_PASSWORD
+        sync: false
+      - key: MONGO_URL
+        sync: false
+      - key: DB_NAME
+        value: pulseops
+      - key: CORS_ORIGINS
+        value: ""
+      - key: ENFORCE_LABEL_CUTOFF
+        value: "false"
+      - key: TOKEN_TTL_HOURS
+        value: "12"
+      - key: APP_TIMEZONE
+        value: Asia/Kolkata

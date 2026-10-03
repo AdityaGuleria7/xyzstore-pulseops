@@ -1,0 +1,16 @@
+.git
+.gitignore
+.DS_Store
+**/node_modules
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/build
+**/dist
+backend/data/state.json
+backend/data/inventory_verification/*
+*.log
+
+**/.env
+**/.env.*
+!**/.env.example
