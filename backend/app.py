@@ -189,11 +189,11 @@ def normalize_legacy_state(state: dict[str, Any]) -> dict[str, Any]:
 def seed_state() -> dict[str, Any]:
     now = now_utc()
     orders: list[dict[str, Any]] = []
-    # Exact distribution shown in the supplied dashboard: 70 / 30 / 24 / 15 / 26 / 85 = 250.
-    stage_sizes = [("received", 70), ("processing", 30), ("picking", 24), ("packing", 15), ("staging", 26), ("shipped", 85)]
+    # Balanced 500-order workspace across each fulfillment stage.
+    stage_sizes = [("received", 140), ("processing", 60), ("picking", 48), ("packing", 30), ("staging", 52), ("shipped", 170)]
     index = 0
-    priority_targets = set(range(0, 36))
-    critical_targets = set(range(0, 85))
+    priority_targets = set(range(0, 72))
+    critical_targets = set(range(0, 170))
     for logical_stage, size in stage_sizes:
         for _ in range(size):
             idx = index
@@ -273,9 +273,9 @@ def seed_state() -> dict[str, Any]:
             "verificationPhotoUrl": None, "verificationNotes": None,
         })
 
-    # 25 staged boxes with exact courier and bay counts reflected in the supplied screenshots.
-    bay_distribution = [("B-01", 3), ("B-02", 2), ("B-03", 5), ("B-04", 1), ("B-05", 7), ("B-06", 7)]
-    courier_distribution = {"DHL Express": 4, "Royal Mail": 14, "FedEx Ground": 2, "UPS Next Day": 5}
+    # 50 staged boxes distributed across the six active bays and couriers.
+    bay_distribution = [("B-01", 6), ("B-02", 4), ("B-03", 10), ("B-04", 2), ("B-05", 14), ("B-06", 14)]
+    courier_distribution = {"DHL Express": 8, "Royal Mail": 28, "FedEx Ground": 4, "UPS Next Day": 10}
     staged_orders = [o for o in orders if o["status"] == "staged"]
     boxes: list[dict[str, Any]] = []
     cursor = 0
@@ -307,7 +307,7 @@ def seed_state() -> dict[str, Any]:
         bay_boxes = [b for b in boxes if b["location"] == bay_id]
         courier = bay_boxes[0]["courier"] if bay_boxes else COURIERS[0]["name"]
         pickup = min((datetime.fromisoformat(b["scheduledPickup"]) for b in bay_boxes), default=now + timedelta(hours=4))
-        bays.append({"id": bay_id, "name": f"Bay {bay_id}", "capacity": 12 if bay_id != "B-03" else 10, "boxIds": [b["id"] for b in bay_boxes], "courier": courier, "pickupTime": iso(pickup)})
+        bays.append({"id": bay_id, "name": f"Bay {bay_id}", "capacity": 24, "boxIds": [b["id"] for b in bay_boxes], "courier": courier, "pickupTime": iso(pickup)})
 
     # Six inbound deliveries with compact, readable line-item chips.
     # Top-level sku/product/qty fields remain for backward compatibility; line items
@@ -370,6 +370,52 @@ def seed_state() -> dict[str, Any]:
     return {"orders": orders, "inventory": inventory, "boxes": boxes, "issues": issues, "bays": bays, "receiving": receiving, "activity": activity, "couriers": COURIERS, "workers": default_workers(), "printJobs": [], "settings": {"storeName": "XYZStore", "tagline": "Fulfillment Control Center"}}
 
 
+def expand_legacy_demo_orders(state: dict[str, Any]) -> dict[str, Any]:
+    orders = state.get("orders", [])
+    if APP_ENV == "production" or len(orders) != 250:
+        return state
+
+    seeded = seed_state()
+    existing_ids = {order.get("id") for order in orders}
+    if existing_ids != {order["id"] for order in seeded["orders"][:250]}:
+        return state
+
+    additions = seeded["orders"][250:]
+    added_ids = {order["id"] for order in additions}
+    state["orders"].extend(additions)
+
+    existing_box_ids = {box.get("id") for box in state.get("boxes", [])}
+    boxed_order_ids = {box.get("orderId") for box in state.get("boxes", [])}
+    added_boxes = []
+    for index, box in enumerate(seeded["boxes"]):
+        if box["orderId"] not in added_ids or box["orderId"] in boxed_order_ids:
+            continue
+        new_box = deepcopy(box)
+        if new_box["id"] in existing_box_ids:
+            new_box["id"] = f"BOX-{92000 + index}"
+        existing_box_ids.add(new_box["id"])
+        boxed_order_ids.add(new_box["orderId"])
+        state.setdefault("boxes", []).append(new_box)
+        added_boxes.append(new_box)
+
+    existing_bays = {bay["id"]: bay for bay in state.get("bays", [])}
+    for seeded_bay in seeded["bays"]:
+        bay = existing_bays.get(seeded_bay["id"])
+        if bay is None:
+            bay = deepcopy(seeded_bay)
+            state.setdefault("bays", []).append(bay)
+            existing_bays[bay["id"]] = bay
+        else:
+            bay.setdefault("boxIds", [])
+            bay["boxIds"].extend(
+                box["id"] for box in added_boxes
+                if box["location"] == bay["id"] and box["id"] not in bay["boxIds"]
+            )
+            bay["capacity"] = max(bay.get("capacity", 0), len(bay["boxIds"]) + 2)
+
+    return state
+
+
 class StateStore:
     def __init__(self) -> None:
         self.state = seed_state()
@@ -391,7 +437,7 @@ class StateStore:
                 self.collection = None
         if self.collection is None:
             self.load_file()
-        self.state = normalize_legacy_state(self.state)
+        self.state = expand_legacy_demo_orders(normalize_legacy_state(self.state))
         self.persist()
 
     def load_file(self) -> None:
@@ -1443,6 +1489,76 @@ def shift_briefing(team: int = 3, minutes_per_order: float = 3.0, user: dict[str
     elif k["stockActions"]:
         lines.append(f"{k['stockActions']} SKUs need a warehouse-2 transfer or reorder today.")
     return {"generatedAt": data["generatedAt"], "lines": lines, "headline": lines[0]}
+
+
+@app.get("/api/briefing/overdue-suggestions")
+def overdue_order_suggestions(
+    team: int = 3,
+    minutes_per_order: float = 3.0,
+    user: dict[str, str] = Depends(get_current_user),
+) -> dict[str, Any]:
+    """Build a rule-based overdue recovery plan from current orders and operational risks."""
+    data = insights(minutes_per_order=minutes_per_order, team=team, wave_size=12, user=user)
+    now = now_utc()
+    overdue = [
+        order for order in store.state["orders"]
+        if order["status"] != "shipped" and datetime.fromisoformat(order["deadline"]) < now
+    ]
+    overdue.sort(key=lambda order: datetime.fromisoformat(order["deadline"]))
+    priority_count = sum(order["priority"] == "priority" for order in overdue)
+    open_orders = [
+        order for order in store.state["orders"]
+        if order["status"] != "shipped"
+    ]
+    open_orders.sort(key=lambda order: datetime.fromisoformat(order["deadline"]))
+    if overdue:
+        if priority_count:
+            queue_action = f"Start with the {priority_count} overdue priority {'order' if priority_count == 1 else 'orders'}, then work through the rest by earliest deadline."
+        else:
+            queue_action = f"Work the {len(overdue)} overdue orders by earliest deadline, keeping priority orders ahead of standard work."
+        oldest = datetime.fromisoformat(overdue[0]["deadline"])
+        overdue_minutes = max(1, int((now - oldest).total_seconds() // 60))
+        aging_action = f"The oldest open order is at least {overdue_minutes} minutes late. Check its stock and packing status, then batch it into the next pick run."
+    elif open_orders:
+        next_order = open_orders[0]
+        minutes_until_due = max(0, int((datetime.fromisoformat(next_order["deadline"]) - now).total_seconds() // 60))
+        queue_action = f"No open orders are overdue. Keep the queue moving by deadline; {next_order['id']} is next due in about {minutes_until_due} minutes."
+        aging_action = "Prevent a new backlog: review any order that has not moved to picking and clear it before the next courier cutoff."
+    else:
+        queue_action = "There are no open orders. Confirm the next import and keep the pack team available for the next incoming wave."
+        aging_action = "Use the clear queue to reconcile staged parcels and resolve any outstanding handover exceptions."
+
+    urgent_cutoffs = [row for row in data["radar"] if row["risk"] in {"missed", "will_miss", "at_risk"}]
+    if urgent_cutoffs:
+        cutoff = urgent_cutoffs[0]
+        if cutoff["risk"] == "missed":
+            cutoff_action = f"{cutoff['courier']}'s {cutoff['cutoff']} cutoff has passed with {cutoff['notReady']} orders not staged. Contact the courier or move eligible orders to the next pickup."
+        else:
+            extra_packers = max(0, (cutoff["teamNeeded"] or team) - team)
+            staffing = f" Add {extra_packers} packers if available." if extra_packers else ""
+            cutoff_action = f"Protect {cutoff['courier']}'s {cutoff['cutoff']} cutoff: {cutoff['notReady']} orders remain and need about {cutoff['workMinutes']} minutes to pack.{staffing}"
+    else:
+        next_cutoff = next((row for row in data["radar"] if row["notReady"]), None)
+        cutoff_action = (
+            f"{next_cutoff['courier']} is the next active courier queue. Keep its {next_cutoff['notReady']} orders moving before the {next_cutoff['cutoff']} cutoff."
+            if next_cutoff else
+            "Courier queues are clear. Keep staged parcels grouped by carrier so the next handover stays quick."
+        )
+
+    blocked = data["wave"]["blockedByStock"]
+    stock_risks = [item for item in data["forecast"] if item["level"] in {"critical", "act_now"}]
+    if blocked:
+        stock_action = f"Resolve the {len(blocked)} SKU stock shortage(s) in the next pick wave before releasing it."
+    elif stock_risks:
+        item = stock_risks[0]
+        stock_action = f"Check {item['product']} ({item['variant']}): {item['openDemand']} units of open demand versus {item['mainQty']} on the main shelf. {item['action']}"
+    elif data["wave"]["orders"]:
+        stock_action = f"Release the next pick wave of {len(data['wave']['orders'])} orders and {data['wave']['totalUnits']} units; batching saves {data['wave']['stopsSaved']} shelf stops."
+    else:
+        stock_action = "No stock or pick-wave blocker is detected. Do a quick exception-log check, then keep the current pace."
+
+    suggestions = [queue_action, aging_action, cutoff_action, stock_action]
+    return {"generatedAt": data["generatedAt"], "overdueCount": len(overdue), "suggestions": suggestions}
 
 
 @app.get("/", include_in_schema=False)

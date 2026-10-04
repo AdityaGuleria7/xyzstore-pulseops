@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, Camera, Check, ChevronDown, Clock3, ExternalLink, FileSpreadsheet, PackageCheck, Printer, Tag, Upload, Boxes, ShieldCheck, Users, ScanLine, MapPin, Truck, X, CalendarDays, Activity, Gauge, UserRound, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Camera, Check, ChevronDown, Clock3, Database, Download, ExternalLink, FileSpreadsheet, PackageCheck, Printer, Tag, Upload, Boxes, ShieldCheck, Users, ScanLine, MapPin, Truck, X, CalendarDays, Activity, Gauge, UserRound, CheckCircle2 } from 'lucide-react';
 import { COURIER_OPTIONS, stageOf } from './Orders';
 import { countdown } from './Dashboard';
 import CameraScanner from './CameraScanner';
@@ -46,7 +46,7 @@ export function Receiving({ receiving, inventory, onReceive }) {
   const statusTone = (status) => status === 'exception' ? 'red' : status === 'receiving' ? 'amber' : 'blue';
 
   return <div className="ops-page space-y-5">
-    <PageHeader title="Receiving & Put-away" help="Inbound deliveries, suppliers, line items, quantities, warehouse destination, and put-away status."/>
+    <PageHeader title="Receiving & Put-away"/>
 
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       {[['Open deliveries', open.length], ['Units expected', totalExpected], ['Units received', totalReceived]].map(([label, value]) => (
@@ -147,7 +147,7 @@ export function Receiving({ receiving, inventory, onReceive }) {
 
 export function LabelCenter({ orders, onLabel }) {
   const candidates=orders.filter(o=>o.status==='pending'); const [selected,setSelected]=useState(candidates[0]?.id||''); const order=orders.find(o=>o.id===selected); const now=new Date(); const eligible=COURIER_OPTIONS.filter(c=>{const [h,m]=c.cutoff.split(':').map(Number);return now.getHours()*60+now.getMinutes()<h*60+m});const cheapest=eligible.slice().sort((a,b)=>a.cost-b.cost)[0]?.name;
-  return <div className="ops-page space-y-5"><PageHeader title="Create Label · Courier Comparison" help="Courier cost, speed, pickup window, cutoff, and label assignment."/><div className="ops-card p-5"><label className="field-label">Received order</label><select value={selected} onChange={e=>setSelected(e.target.value)} className="ops-field">{candidates.map(o=><option key={o.id}>{o.id} · {o.customer}</option>)}</select>{order&&<div className="grid lg:grid-cols-4 gap-3 mt-5">{COURIER_OPTIONS.map(c=>{const passed=!eligible.some(x=>x.name===c.name),best=!passed&&c.name===cheapest;return <div key={c.name} className={`border rounded-xl p-4 ${best?'border-emerald-300 bg-emerald-50/40':'border-slate-200'} ${passed?'opacity-50':''}`}><div className="flex justify-between gap-2"><b className="text-sm">{c.name}</b>{best?<Pill tone="green">BEST VALUE</Pill>:passed?<Pill tone="red">Cutoff passed</Pill>:<Pill>Eligible</Pill>}</div><div className="text-[10px] text-slate-500 mt-1">{c.speed} · pickup {c.pickup}</div><div className="grid grid-cols-2 gap-2 mt-4 text-xs"><div><span className="block text-slate-400">Cost</span><b>₹{c.cost}</b></div><div><span className="block text-slate-400">Cutoff</span><b>{c.cutoff}</b></div></div><button disabled={passed} onClick={()=>onLabel(order.id,c.name,c.cost)} className="ops-primary w-full mt-4 disabled:opacity-30"><Tag className="w-3.5 h-3.5 mr-1"/>Create label</button></div>})}</div>}</div></div>;
+  return <div className="ops-page space-y-5"><PageHeader title="Create Label · Courier Comparison"/><div className="ops-card p-5"><label className="field-label">Received order</label><select value={selected} onChange={e=>setSelected(e.target.value)} className="ops-field">{candidates.map(o=><option key={o.id}>{o.id} · {o.customer}</option>)}</select>{order&&<div className="grid lg:grid-cols-4 gap-3 mt-5">{COURIER_OPTIONS.map(c=>{const passed=!eligible.some(x=>x.name===c.name),best=!passed&&c.name===cheapest;return <div key={c.name} className={`border rounded-xl p-4 ${best?'border-emerald-300 bg-emerald-50/40':'border-slate-200'} ${passed?'opacity-50':''}`}><div className="flex justify-between gap-2"><b className="text-sm">{c.name}</b>{best?<Pill tone="green">BEST VALUE</Pill>:passed?<Pill tone="red">Cutoff passed</Pill>:<Pill>Eligible</Pill>}</div><div className="text-[10px] text-slate-500 mt-1">{c.speed} · pickup {c.pickup}</div><div className="grid grid-cols-2 gap-2 mt-4 text-xs"><div><span className="block text-slate-400">Cost</span><b>₹{c.cost}</b></div><div><span className="block text-slate-400">Cutoff</span><b>{c.cutoff}</b></div></div><button disabled={passed} onClick={()=>onLabel(order.id,c.name,c.cost)} className="ops-primary w-full mt-4 disabled:opacity-30"><Tag className="w-3.5 h-3.5 mr-1"/>Create label</button></div>})}</div>}</div></div>;
 }
 
 export function WorkerMode({ orders, inventory, onScan, onSeal, stats }) {
@@ -177,7 +177,7 @@ export function WorkerMode({ orders, inventory, onScan, onSeal, stats }) {
 
   if (!next) {
     return <div className="ops-page worker-mode-page">
-      <PageHeader title="Worker Mode" description="Your pick and pack workspace." help="Orders enter this queue after they are assigned for picking." />
+      <PageHeader title="Worker Mode" description="Your pick and pack workspace." />
       <section className="worker-empty-state">
         <span className="worker-empty-icon"><CheckCircle2 aria-hidden="true" /></span>
         <h2>You're all caught up</h2>
@@ -202,7 +202,6 @@ export function WorkerMode({ orders, inventory, onScan, onSeal, stats }) {
     <PageHeader
       title="Worker Mode"
       description="Pick, verify, and pack orders assigned to your queue."
-      help="Scan each unit against the assigned order, then seal the completed box for staging."
       right={<Pill tone={next.priority === 'priority' ? 'purple' : 'slate'}>{next.priority === 'priority' ? 'EXPRESS PRIORITY' : 'STANDARD'}</Pill>}
     />
 
@@ -339,7 +338,7 @@ export function ShiftReport({ stats, activity = [], currentUser, workers = [], c
   };
 
   return <div className="ops-page space-y-5">
-    <PageHeader title="Shift Report" help="Select a worker and date to review saved activity, output, accuracy and shift timeline." right={<div className="flex flex-wrap items-center gap-2"><div className="shift-report-date"><CalendarDays className="w-3.5 h-3.5 text-slate-400" /><input type="date" value={reportDate} onChange={e => setReportDate(e.target.value)} aria-label="Report date" /></div><button onClick={download} className="ops-secondary inline-flex items-center gap-2"><FileSpreadsheet className="w-4 h-4" />Export report</button></div>} />
+    <PageHeader title="Shift Report" right={<div className="flex flex-wrap items-center gap-2"><div className="shift-report-date"><CalendarDays className="w-3.5 h-3.5 text-slate-400" /><input type="date" value={reportDate} onChange={e => setReportDate(e.target.value)} aria-label="Report date" /></div><button onClick={download} className="ops-secondary inline-flex items-center gap-2"><FileSpreadsheet className="w-4 h-4" />Export report</button></div>} />
 
     <div className="shift-report-layout">
       <aside className="ops-card p-4 shift-worker-picker">
@@ -388,6 +387,69 @@ export function ShiftReport({ stats, activity = [], currentUser, workers = [], c
 }
 
 export function CsvSync({ orders, inventory, issues, onImport }) {
-  const fileRef=React.useRef(null); const download=(name,rows)=>{const keys=rows.length?Object.keys(rows[0]):[];const csv=[keys.join(','),...rows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))].join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`${name}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500);}; const read=async e=>{const f=e.target.files?.[0];if(!f)return;const text=await f.text();const [header,...rows]=text.split(/\r?\n/).filter(Boolean);const keys=header.split(',').map(x=>x.trim());const items=rows.map(line=>{const vals=line.split(',').map(x=>x.replace(/^"|"$/g,''));return Object.fromEntries(keys.map((k,i)=>[k,vals[i]]))});await onImport(items);e.target.value='';};
-  return <div className="ops-page space-y-5"><PageHeader title="CSV / Spreadsheet Sync" help="Export operational datasets and bulk-import inventory without changing the existing spreadsheet workflow."/><div className="grid md:grid-cols-3 gap-3">{[['Orders',orders,'orders'],['Inventory',inventory,'inventory'],['Problem Log',issues,'problem-log']].map(([n,r,f])=><button key={n} onClick={()=>download(f,r)} className="ops-card p-5 text-left hover:border-slate-400 cursor-pointer"><FileSpreadsheet className="w-5 h-5 text-slate-400"/><div className="font-bold text-sm mt-3">{n}</div><div className="text-[10px] text-slate-400 mt-1">{r.length} rows · Export CSV</div></button>)}</div><div className="ops-card p-5"><div className="font-bold text-sm">Import inventory from CSV</div><p className="text-[11px] text-slate-500 mt-1">Expected columns: sku, quantity, location. Existing SKUs are updated; unknown SKUs are ignored.</p><div className="flex gap-2 mt-4"><button onClick={()=>fileRef.current?.click()} className="ops-primary"><Upload className="w-3.5 h-3.5 mr-1"/>Choose CSV</button><button onClick={()=>download('inventory-template',[{sku:'EL-WH-BLK-01',quantity:25,location:'Aisle 1 · Shelf A'}])} className="ops-secondary">Download template</button><input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={read}/></div><div className="text-[10px] text-slate-400 mt-4 flex items-center gap-1"><ShieldCheck className="w-3 h-3"/>Inventory changes remain logged and undoable.</div></div></div>;
+  const fileRef = React.useRef(null);
+  const download = (name, rows) => {
+    const keys = rows.length ? Object.keys(rows[0]) : [];
+    const csv = [keys.join(','), ...rows.map(row => keys.map(key => JSON.stringify(row[key] ?? '')).join(','))].join('\n');
+    const fileUrl = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    const link = document.createElement('a');
+    link.href = fileUrl;
+    link.download = `${name}.csv`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(fileUrl), 500);
+  };
+  const read = async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const text = await file.text();
+    const [header, ...rows] = text.split(/\r?\n/).filter(Boolean);
+    const keys = header.split(',').map(value => value.trim());
+    const items = rows.map(line => {
+      const values = line.split(',').map(value => value.replace(/^"|"$/g, ''));
+      return Object.fromEntries(keys.map((key, index) => [key, values[index]]));
+    });
+    await onImport(items);
+    event.target.value = '';
+  };
+  const exports = [['Orders', orders, 'orders'], ['Inventory', inventory, 'inventory'], ['Problem Log', issues, 'problem-log']];
+
+  return <div className="ops-page csv-sync-page space-y-5">
+    <PageHeader title="CSV / Spreadsheet Sync" description="Move the operational data you need between PulseOps and your spreadsheets." />
+    <section className="csv-data-guide" aria-labelledby="csv-guide-title">
+      <div className="csv-data-guide-copy">
+        <span className="csv-data-guide-kicker"><ShieldCheck aria-hidden="true" /> Data stays in your workflow</span>
+        <h2 id="csv-guide-title">Know what moves, and where it goes.</h2>
+        <p>Exports download to your device. Imports send the CSV to your PulseOps workspace: recognized SKUs update quantity and location, unknown SKUs are skipped, and accepted changes are logged and undoable.</p>
+        <div className="csv-data-guide-points">
+          <span><Download aria-hidden="true" />Export: browser download</span>
+          <span><Database aria-hidden="true" />Import: workspace inventory</span>
+        </div>
+      </div>
+      <div className="csv-data-illustration" role="img" aria-label="Illustration showing a spreadsheet export downloaded to your device and an inventory import processed by your workspace">
+        <div className="csv-illustration-sheet" aria-hidden="true">
+          <div className="csv-illustration-sheet-head"><FileSpreadsheet /><span>inventory.csv</span></div>
+          <span /><span /><span /><span />
+          <div className="csv-illustration-sheet-check"><Check /></div>
+        </div>
+        <div className="csv-illustration-flow" aria-hidden="true"><span /><ArrowRight /></div>
+        <div className="csv-illustration-store" aria-hidden="true">
+          <div className="csv-illustration-store-icon"><Database /></div>
+          <span className="csv-illustration-store-rack rack-one" />
+          <span className="csv-illustration-store-rack rack-two" />
+          <span className="csv-illustration-store-rack rack-three" />
+          <span className="csv-illustration-store-base" />
+        </div>
+        <span className="csv-illustration-caption" aria-hidden="true">Your workspace</span>
+      </div>
+    </section>
+    <section aria-label="Export operational data">
+      <div className="csv-section-heading"><div><h2>Take a copy with you</h2><p>Each export contains the current records for that dataset.</p></div><span>3 datasets</span></div>
+      <div className="grid md:grid-cols-3 gap-3">{exports.map(([name, rows, filename], index) => <button key={name} onClick={() => download(filename, rows)} className={`csv-export-card csv-export-card-${index} ops-card p-5 text-left cursor-pointer`}><span className="csv-export-icon"><FileSpreadsheet aria-hidden="true" /></span><span className="csv-export-card-copy"><span className="font-bold text-sm">{name}</span><span className="text-[10px] text-slate-500">{rows.length} rows · CSV file</span></span><Download className="csv-export-download" aria-hidden="true" /></button>)}</div>
+    </section>
+    <section className="csv-import-card ops-card">
+      <div className="csv-import-header"><span className="csv-import-icon"><Upload aria-hidden="true" /></span><div><h2>Update inventory from a spreadsheet</h2><p>Use a CSV with <code>sku</code>, <code>quantity</code>, and <code>location</code> columns.</p></div></div>
+      <div className="csv-import-details"><span><Check aria-hidden="true" />Known SKUs update inventory</span><span><Check aria-hidden="true" />Unknown SKUs are skipped</span><span><Check aria-hidden="true" />Changes are logged and undoable</span></div>
+      <div className="csv-import-actions"><button type="button" onClick={() => fileRef.current?.click()} className="ops-primary"><Upload className="w-3.5 h-3.5" />Choose CSV</button><button type="button" onClick={() => download('inventory-template', [{ sku: 'EL-WH-BLK-01', quantity: 25, location: 'Aisle 1 · Shelf A' }])} className="ops-secondary">Download template</button><input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={read} /></div>
+    </section>
+  </div>;
 }

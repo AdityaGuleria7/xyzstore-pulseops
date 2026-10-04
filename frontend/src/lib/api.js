@@ -3,6 +3,22 @@ import axios from 'axios';
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || (import.meta.env.DEV ? '' : window.location.origin);
 const api = axios.create({ baseURL: BASE_URL, timeout: 15000 });
 
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const requestUrl = error.config?.url || '';
+    if (
+      error.response?.status === 401 &&
+      !requestUrl.includes('/api/auth/login') &&
+      localStorage.getItem('pulseops.token')
+    ) {
+      localStorage.removeItem('pulseops.token');
+      window.dispatchEvent(new Event('pulseops:session-expired'));
+    }
+    return Promise.reject(error);
+  },
+);
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('pulseops.token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -132,4 +148,8 @@ export async function updateSettings(storeName, tagline = "Fulfillment Control C
 
 export async function getBriefing({ team = 3, minutesPerOrder = 3 } = {}) {
   return (await api.get('/api/briefing', { params: { team, minutes_per_order: minutesPerOrder } })).data;
+}
+
+export async function getOverdueSuggestions({ team = 3, minutesPerOrder = 3 } = {}) {
+  return (await api.get('/api/briefing/overdue-suggestions', { params: { team, minutes_per_order: minutesPerOrder } })).data;
 }

@@ -1,9 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Globe2, MapPin, TrendingUp, IndianRupee, Crosshair } from 'lucide-react';
+import { Globe2, MapPin, TrendingUp, IndianRupee, Crosshair, Layers3 } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const MARKET_MIN_ZOOM = 2;
+const MAP_STYLES = [
+  { id: 'light', label: 'Light', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenStreetMap contributors' },
+  { id: 'street', label: 'Street', url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', attribution: '&copy; Esri, Garmin, FAO, NOAA, USGS, OpenStreetMap contributors, and the GIS User Community' },
+  { id: 'dark', label: 'Dark', url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attribution: '&copy; OpenStreetMap contributors' },
+];
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 const marketKey = o => `${o.city || 'Unknown'}|${o.state || 'Unknown'}|${o.country || 'Unknown'}`;
 
@@ -22,6 +27,8 @@ export default function OrderGeoMap({ orders = [] }) {
   const hostRef = useRef(null);
   const mapRef = useRef(null);
   const layerRef = useRef(null);
+  const baseLayerRef = useRef(null);
+  const [mapStyle, setMapStyle] = useState('light');
   const [selectedMarket, setSelectedMarket] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(null);
 
@@ -68,11 +75,6 @@ export default function OrderGeoMap({ orders = [] }) {
     if (!hostRef.current || mapRef.current) return undefined;
     const map = L.map(hostRef.current, { zoomControl: false, worldCopyJump: true, minZoom: 1, maxZoom: 12, zoomSnap: 0.5, preferCanvas: true }).setView([20, 0], MARKET_MIN_ZOOM);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19,
-      crossOrigin: true,
-    }).addTo(map);
     layerRef.current = L.layerGroup().addTo(map);
     mapRef.current = map;
 
@@ -96,6 +98,24 @@ export default function OrderGeoMap({ orders = [] }) {
       layerRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const style = MAP_STYLES.find(option => option.id === mapStyle) || MAP_STYLES[0];
+    if (baseLayerRef.current) map.removeLayer(baseLayerRef.current);
+    baseLayerRef.current = L.tileLayer(style.url, {
+      attribution: style.attribution,
+      maxZoom: 19,
+      crossOrigin: true,
+    }).addTo(map);
+    return () => {
+      if (baseLayerRef.current) {
+        map.removeLayer(baseLayerRef.current);
+        baseLayerRef.current = null;
+      }
+    };
+  }, [mapStyle]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -150,6 +170,10 @@ export default function OrderGeoMap({ orders = [] }) {
             <h2>Global Orders &amp; Sales</h2>
             <p>Explore order volume and sales by market.</p>
           </div>
+          <div className="global-orders-map-style" role="group" aria-label="Map style">
+            <Layers3 aria-hidden="true" />
+            {MAP_STYLES.map(style => <button key={style.id} type="button" onClick={() => setMapStyle(style.id)} aria-pressed={mapStyle === style.id}>{style.label}</button>)}
+          </div>
         </div>
         <div className="global-orders-summary">
           <div className="global-orders-stat">
@@ -165,7 +189,7 @@ export default function OrderGeoMap({ orders = [] }) {
       <div className="global-orders-layout">
         <div className="global-orders-map-column">
           <div className="global-orders-map-frame">
-            <div ref={hostRef} className="pulseops-map" aria-label="Global order map" />
+            <div ref={hostRef} className={`pulseops-map${mapStyle === 'dark' ? ' is-dark-style' : ''}`} aria-label="Global order map" />
             {!markets.length && <div className="global-orders-map-empty">No location data is available for these orders.</div>}
             <div className="global-orders-map-label"><MapPin aria-hidden="true" /> Orders by city</div>
           </div>
@@ -207,7 +231,6 @@ export default function OrderGeoMap({ orders = [] }) {
               </article>;
             })}
           </div> : <div className="global-orders-market-empty">Market breakdown will appear when orders include location data.</div>}
-          <div className="global-orders-average"><span>Average order value</span><strong>₹{orders.length ? Math.round(totalSales / orders.length).toLocaleString() : '0'}</strong></div>
         </aside>
       </div>
     </section>

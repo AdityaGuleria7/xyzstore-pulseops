@@ -16,7 +16,7 @@ countdown badges, role-specific navigation and the 250-order fulfillment workflo
 
 Dashboard, Orders & Priority, Worker Mode, Stock & Transfers, Couriers & Staging, Receiving, Problem Log, Shift Report,
 CSV Sync, courier comparison at label creation, quantity-level barcode scanning, warehouse transfer, receiving/put-away,
-staging bay assignment/scan-in, pickup handover, issue tracking, role permissions and a seeded 250-order dataset.
+staging bay assignment/scan-in, pickup handover, issue tracking, role permissions and a seeded 500-order dataset.
 
 ### V9 operational UX updates
 
@@ -126,4 +126,3 @@ Inbound delivery cards now use a dense operational layout with selectable produc
 
 ## V30 update
 The V30 polish removes the global clock card from the application header, places last-sync time/date on the Dashboard sync card, simplifies the user avatar to a single initial, and standardizes Orders action-button spacing.
-

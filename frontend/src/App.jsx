@@ -25,6 +25,7 @@ export default function App() {
   const [orderKindFilter, setOrderKindFilter] = useState('all');
   const [now, setNow] = useState(new Date());
   const [toasts, setToasts] = useState([]);
+  const [sessionNotice, setSessionNotice] = useState('');
   const [state, setState] = useState(EMPTY);
   const [loading, setLoading] = useState(Boolean(localStorage.getItem('pulseops.token')));
   const [serverStatus, setServerStatus] = useState('connecting');
@@ -32,6 +33,23 @@ export default function App() {
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      setIsLoggedIn(false);
+      setLoading(false);
+      setState(EMPTY);
+      setActiveView('dashboard');
+      setSessionNotice('Your session expired. Sign in again to continue.');
+      setToasts((previous) => [...previous, {
+        id: `${Date.now()}-${Math.random()}`,
+        message: 'Your session expired. Sign in again to continue.',
+        type: 'error',
+      }]);
+    };
+    window.addEventListener('pulseops:session-expired', handleSessionExpired);
+    return () => window.removeEventListener('pulseops:session-expired', handleSessionExpired);
   }, []);
 
   const addToast = (message, type = 'info', action = undefined) => setToasts((p) => [...p, { id: `${Date.now()}-${Math.random()}`, message, type, action }]);
@@ -59,8 +77,8 @@ export default function App() {
             setActiveView(data.user.role === 'Packer' ? 'worker' : 'dashboard');
           }
         }
-      } catch {
-        setServerStatus('offline');
+      } catch (error) {
+        setServerStatus(error?.response?.status === 401 ? 'online' : 'offline');
         if (localStorage.getItem('pulseops.token')) {
           localStorage.removeItem('pulseops.token');
           setIsLoggedIn(false);
@@ -85,6 +103,7 @@ export default function App() {
       const data = await api.login(email, password);
       setCurrentUser(data.user);
       setIsLoggedIn(true);
+      setSessionNotice('');
       setActiveView(data.user.role === 'Packer' ? 'worker' : 'dashboard');
       await refresh();
       addToast(`Signed in as ${data.user.role}`, 'success');
@@ -264,11 +283,11 @@ export default function App() {
   }, [state.activity, currentUser.name]);
 
   if (loading) return <div className="min-h-screen bg-slate-50 flex items-center justify-center text-sm text-slate-500">Connecting to PulseOps backend…</div>;
-  if (!isLoggedIn) return <><Login onLogin={handleLogin} serverStatus={serverStatus} /><div className="fixed bottom-5 right-5 z-50 space-y-2">{toasts.map((t) => <Toast key={t.id} toast={t} onDismiss={removeToast} />)}</div></>;
+  if (!isLoggedIn) return <><Login onLogin={handleLogin} serverStatus={serverStatus} sessionNotice={sessionNotice} /><div className="fixed bottom-5 right-5 z-50 space-y-2">{toasts.map((t) => <Toast key={t.id} toast={t} onDismiss={removeToast} />)}</div></>;
 
   return <Shell activeView={activeView} setActiveView={setActiveView} currentUser={currentUser} onSwitchUser={handleSwitchUser} onLogout={handleLogout} urgent={urgent} missed={missed} serverStatus={serverStatus} storeSettings={state.settings || { storeName: 'XYZStore', tagline: 'Fulfillment Control Center' }} onSaveStoreSettings={updateStoreSettings}>
     <main>
-      {activeView === 'dashboard' && currentUser.role === 'Admin' && <Dashboard orders={state.orders} now={now} lowStock={low} onNavigate={navigate} workers={state.workers || []} stagedCount={state.boxes.filter((b) => b.status === 'waiting_pickup').length} inboundCount={state.receiving.filter((r) => r.status !== 'received').length} transferCount={transferLines} userName={currentUser.name} />}
+      {activeView === 'dashboard' && currentUser.role === 'Admin' && <Dashboard orders={state.orders} now={now} lowStock={low} onNavigate={navigate} workers={state.workers || []} activity={state.activity || []} stagedCount={state.boxes.filter((b) => b.status === 'waiting_pickup').length} inboundCount={state.receiving.filter((r) => r.status !== 'received').length} transferCount={transferLines} userName={currentUser.name} />}
       {activeView === 'command' && currentUser.role === 'Admin' && <CommandCenter onNavigate={navigate} workers={state.workers || []} activity={state.activity || []} />}
       {activeView === 'orders' && currentUser.role === 'Admin' && <Orders orders={state.orders} now={now} flagged={state.issues.map((i) => i.orderId).filter(Boolean)} onLabel={createLabel} onStage={batchStage} onPrint={printLabels} onFlag={flagOrder} onSeal={() => {}} onWorker={() => navigate('worker')} initialStage={orderStageFilter} initialKind={orderKindFilter} />}
       {activeView === 'inventory' && currentUser.role === 'Admin' && <StockLedger inventory={state.inventory} activity={state.activity} onTransfer={transfer} onAudit={audit} onVerify={verifyInventory} />}

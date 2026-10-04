@@ -6,7 +6,7 @@ export const DEMO_USERS = [
   { name: 'Packer', role: 'Packer', initials: 'P', description: 'Floor operations · picking, packing, receiving and handoff' },
 ];
 
-export default function Login({ onLogin, serverStatus = 'connecting' }) {
+export default function Login({ onLogin, serverStatus = 'connecting', sessionNotice = '' }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPass, setShowPass] = useState(false);
@@ -43,6 +43,7 @@ export default function Login({ onLogin, serverStatus = 'connecting' }) {
           <div className="max-w-md mx-auto w-full">
             <div className="mb-6"><div className="text-xs text-slate-400 font-medium">Your operations, in one place</div><h1 className="text-2xl font-extrabold mt-1">Welcome back</h1><p className="text-xs text-slate-500 mt-1">Sign in to open your team's workspace.</p></div>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {sessionNotice && <div role="status" className="flex gap-2 items-center bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 text-xs"><AlertCircle className="w-4 h-4 shrink-0" />{sessionNotice}</div>}
               {error && <div className="flex gap-2 items-center bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-xs"><AlertCircle className="w-4 h-4" />{error}</div>}
               {serverStatus === 'offline' && <div className="flex gap-2 items-center bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-3 text-xs"><ServerCrash className="w-4 h-4" />Backend is offline. Start FastAPI on port 8000.</div>}
               <div><label htmlFor="login-email" className="text-xs font-semibold">Work email</label><input id="login-email" value={email} onChange={(e) => setEmail(e.target.value)} type="email" autoComplete="username" required className="login-input mt-1.5 w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-slate-900" /></div>

@@ -20,7 +20,7 @@ The dashboard derives the six-stage view from order status and scan progress.
 Four headline KPIs, six-stage pipeline, deadline watchlist and operational widgets for staged boxes, inbound deliveries, transfers and priority orders.
 
 ### Orders & Priority Workflow
-All 250 demo orders. Search by order/customer/SKU/variant, filter by stage/priority/courier, switch Table/Kanban, select rows for batch actions and flag issues.
+All 500 demo orders. Search by order/customer/SKU/variant, filter by stage/priority/courier, switch Table/Kanban, select rows for batch actions and flag issues.
 
 ### Create Label
 Select a Received order. Compare Royal Mail, FedEx Ground, UPS Next Day and DHL Express by cost, ETA, cutoff and pickup time. Eligible services are shown separately from cutoff-passed services; the cheapest eligible option is marked **BEST VALUE**.

@@ -1,10 +1,12 @@
+import copy
 import os
 import subprocess
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 from fastapi.testclient import TestClient
-from app import app
+from app import app, now_utc, seed_state, store
 
 client = TestClient(app)
 
@@ -43,11 +45,29 @@ def test_production_rejects_demo_account_emails():
     assert "ADMIN_EMAIL, PACKER_EMAIL" in result.stderr
 
 
-def test_admin_bootstrap_has_250_orders():
+def test_admin_bootstrap_has_500_orders():
     t = token()
     data = client.get("/api/bootstrap", headers={"Authorization": f"Bearer {t}"}).json()
-    assert len(data["state"]["orders"]) == 250
+    assert len(data["state"]["orders"]) == 500
     assert len(data["state"]["bays"]) == 6
+    assert len({order["id"] for order in data["state"]["orders"]}) == 500
+    assert all(box["orderId"] in {order["id"] for order in data["state"]["orders"]} for box in data["state"]["boxes"])
+    assert len(data["state"]["inventory"]) == 10
+    assert len(data["state"]["receiving"]) == 6
+
+
+def test_seed_state_has_500_orders_and_staging_data():
+    state = seed_state()
+    orders = state["orders"]
+
+    assert len(orders) == 500
+    assert sum(order["status"] == "pending" for order in orders) == 140
+    assert sum(order["status"] == "processing" for order in orders) == 108
+    assert sum(order["status"] == "packed" for order in orders) == 30
+    assert sum(order["status"] == "staged" for order in orders) == 52
+    assert sum(order["status"] == "shipped" for order in orders) == 170
+    assert len(state["boxes"]) == 50
+    assert sum(len(bay["boxIds"]) for bay in state["bays"]) == 50
 
 
 def test_packer_can_read_fulfillment_inventory_but_not_mutate_it():
@@ -195,3 +215,30 @@ def test_shift_briefing_is_plain_english_and_personalised():
     assert d["lines"][0].startswith(("Good morning", "Good afternoon", "Good evening")) and "Aditya" in d["headline"]
     assert len(d["lines"]) >= 3 and all(isinstance(x, str) and x.endswith((".", ")")) for x in d["lines"])
     assert client.get("/api/briefing").status_code == 401
+
+
+def test_overdue_order_suggestions_use_live_operational_data():
+    response = client.get("/api/briefing/overdue-suggestions?team=4&minutes_per_order=2.5", headers=_h())
+    assert response.status_code == 200
+    result = response.json()
+    assert isinstance(result["overdueCount"], int)
+    assert result["overdueCount"] >= 0
+    assert len(result["suggestions"]) == 4
+    assert all(isinstance(item, str) and item for item in result["suggestions"])
+    assert client.get("/api/briefing/overdue-suggestions").status_code == 401
+
+
+def test_overdue_suggestions_still_return_four_when_queue_is_clear(monkeypatch):
+    state = copy.deepcopy(store.state)
+    future_deadline = (now_utc() + timedelta(days=1)).isoformat()
+    for order in state["orders"]:
+        if order["status"] != "shipped":
+            order["deadline"] = future_deadline
+    monkeypatch.setattr(store, "state", state)
+
+    response = client.get("/api/briefing/overdue-suggestions", headers=_h())
+    assert response.status_code == 200
+    result = response.json()
+    assert result["overdueCount"] == 0
+    assert len(result["suggestions"]) == 4
+    assert "No open orders are overdue" in result["suggestions"][0]

@@ -37,6 +37,19 @@ const PACKER_NAV_GROUPS = [
   { label: 'My workspace', items: [['worker', 'Worker mode', ScanLine], ['receiving', 'Receiving', Inbox], ['shift', 'Shift report', ClipboardList]] },
 ];
 
+const PAGE_GUIDES = {
+  dashboard: 'Monitor sales and order volume, follow each fulfillment stage, and spot deadline or stock issues early.',
+  command: 'Review cutoff risk, pick-wave planning, stock coverage, team presence, and worker activity.',
+  orders: 'Search orders, review stages and deadlines, filter by priority or courier, and run batch actions.',
+  worker: 'Scan each unit against its assigned order, then seal completed boxes for staging.',
+  staging: 'Review pickup windows, courier assignments, staged boxes, bay locations, and handover status.',
+  receiving: 'Track inbound deliveries, suppliers, item quantities, warehouse destinations, and put-away status.',
+  inventory: 'Review SKU quantities and shelf locations, transfer stock, audit counts, and verify inventory.',
+  issues: 'Track incidents by category, severity, owner, linked order, status, and timestamp.',
+  shift: 'Review worker output, accuracy, saved activity, and shift timelines by date.',
+  csv: 'Export operational datasets or bulk-import inventory while preserving your spreadsheet workflow.',
+};
+
 export default function Shell({
   activeView,
   setActiveView,
@@ -54,6 +67,7 @@ export default function Shell({
   const [dark, setDark] = useState(() => localStorage.getItem('fx.dark') === '1');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('pulseops.sidebar-collapsed') === '1');
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [hoveredGuide, setHoveredGuide] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [switchAccountOpen, setSwitchAccountOpen] = useState(false);
   const [switchEmail, setSwitchEmail] = useState('');
@@ -183,10 +197,29 @@ export default function Shell({
                   key={id}
                   type="button"
                   onClick={() => { setActiveView(id); setMobileNavOpen(false); }}
+                  onPointerEnter={(event) => {
+                    const bounds = event.currentTarget.getBoundingClientRect();
+                    setHoveredGuide({
+                      label,
+                      text: PAGE_GUIDES[id],
+                      top: Math.max(12, Math.min(bounds.top, window.innerHeight - 160)),
+                      left: Math.min(bounds.right + 12, window.innerWidth - 312),
+                    });
+                  }}
+                  onPointerLeave={() => setHoveredGuide(null)}
+                  onFocus={(event) => {
+                    const bounds = event.currentTarget.getBoundingClientRect();
+                    setHoveredGuide({
+                      label,
+                      text: PAGE_GUIDES[id],
+                      top: Math.max(12, Math.min(bounds.top, window.innerHeight - 160)),
+                      left: Math.min(bounds.right + 12, window.innerWidth - 312),
+                    });
+                  }}
+                  onBlur={() => setHoveredGuide(null)}
                   aria-current={activeView === id ? 'page' : undefined}
                   aria-label={sidebarCollapsed ? label : undefined}
                   className="pulseops-sidebar-link"
-                  title={sidebarCollapsed ? label : undefined}
                 >
                   <Icon className="h-4 w-4" /><span>{label}</span>
                   {id === 'staging' && missed > 0 && <span className="pulseops-sidebar-count" aria-label={`${missed} missed pickups`}>{missed}</span>}
@@ -195,6 +228,17 @@ export default function Shell({
             </div>
           ))}
         </nav>
+        {hoveredGuide && (
+          <div
+            className="pulseops-nav-guide"
+            role="tooltip"
+            style={{ top: hoveredGuide.top, left: Math.max(12, hoveredGuide.left) }}
+          >
+            <span className="pulseops-nav-guide-kicker">PAGE GUIDE</span>
+            <strong>{hoveredGuide.label}</strong>
+            <span>{hoveredGuide.text}</span>
+          </div>
+        )}
         <div className="pulseops-sidebar-footer">
           <div className={`pulseops-service-status ${serverStatus === 'online' ? 'is-online' : 'is-offline'}`}>
             <span className="pulseops-service-indicator" aria-hidden="true" />

@@ -5,7 +5,7 @@ This version is based on the supplied `PulseOps-User-Guide.pdf`.
 ## Source-to-feature mapping
 
 - Dashboard: KPI cards, six-stage pipeline, deadline watchlist, priority lane and operational widgets.
-- Orders: 250-order dataset, filters, table/Kanban, batch selection, label printing queue and Flag Issue.
+- Orders: 500-order dataset, filters, table/Kanban, batch selection, label printing queue and Flag Issue.
 - Labels: courier comparison by cost, ETA, cutoff and pickup time.
 - Worker: priority-first queue, shelf location, variant chip, barcode-per-unit scanning, mismatch rejection and Seal box.
 - Stock: Main/WH2 transfer workflow and existing inventory audit controls.
