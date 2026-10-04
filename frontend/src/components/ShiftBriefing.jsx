@@ -24,17 +24,17 @@ export default function ShiftBriefing({ team, minutesPerOrder }) {
     setSpeaking(true); window.speechSynthesis.speak(u);
   };
   return (
-    <section className="ops-card relative overflow-hidden border-blue-200 bg-gradient-to-br from-blue-50 via-white to-white p-5" aria-label="Shift briefing">
-      <div className="flex items-start gap-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-950 text-white"><Sparkles className="h-5 w-5" /></div>
-        <div className="min-w-0 flex-1">
+    <section className="ops-card shift-briefing relative overflow-hidden border-blue-200 bg-gradient-to-br from-blue-50 via-white to-white p-5" aria-label="Shift briefing">
+      <div className="shift-briefing-layout">
+        <div className="shift-briefing-icon"><Sparkles className="h-5 w-5" /></div>
+        <div className="shift-briefing-copy">
           <div className="text-[11px] font-bold uppercase tracking-wider text-blue-700">Shift briefing</div>
           <p className="mt-1 text-base font-extrabold leading-snug text-slate-900">{data.lines[0]}</p>
           <ul className="mt-3 space-y-1.5 text-sm leading-relaxed text-slate-700">
             {data.lines.slice(1).map((l, i) => <li key={i} className="flex gap-2"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500" />{l}</li>)}
           </ul>
         </div>
-        {canSpeak && <button onClick={toggle} className="flex shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold hover:bg-slate-50" aria-label={speaking ? 'Stop reading' : 'Read briefing aloud'}>
+        {canSpeak && <button onClick={toggle} className="shift-briefing-audio" aria-label={speaking ? 'Stop reading' : 'Read briefing aloud'}>
           {speaking ? <Square className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}{speaking ? 'Stop' : 'Read aloud'}</button>}
       </div>
     </section>

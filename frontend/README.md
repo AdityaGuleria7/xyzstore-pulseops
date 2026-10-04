@@ -17,7 +17,16 @@ Hot reload is provided by Vite HMR. Restart after changing `.env` or `vite.confi
 
 ## Local backend
 
-The paired FastAPI service lives in `../backend` and runs on port `8000`. The frontend calls it for authentication,
+The paired FastAPI service lives in `../backend` and runs on port `8000`. Start it in a second terminal:
+
+```bash
+cd ../backend
+source .venv/bin/activate
+uvicorn app:app --reload --port 8000
+```
+
+Start the frontend with `yarn dev`; Vite proxies `/api` requests to the backend, including when it selects port
+`5173` because port `3000` is already occupied. The frontend calls the API for authentication,
 orders, labels, scans, packing, staging, receiving, inventory transfers/audits, issues, reports and CSV operations.
 
 ## Environment

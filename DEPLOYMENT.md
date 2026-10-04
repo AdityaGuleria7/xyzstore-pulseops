@@ -9,7 +9,7 @@ This repository is designed to deploy as one Render Docker Web Service. Render b
 1. Do not commit `.env` files, passwords, JWT secrets, or database connection strings.
 2. Create a MongoDB Atlas database (or another managed MongoDB) and keep its connection string private.
 3. Use unique production credentials for Admin and Packer.
-4. Keep `PULSEOPS_ENV=production` in Render. Production refuses to start without a strong JWT secret, non-demo passwords, and a reachable MongoDB URL.
+4. Keep `PULSEOPS_ENV=production` in Render. Production refuses to start without a strong JWT secret, non-demo account emails and passwords, and a reachable MongoDB URL.
 5. Inventory verification photos are stored on the server filesystem. On Render's default ephemeral filesystem they are not durable across restarts; use a Render persistent disk (paid web service) mounted to `/var/data` and set `PULSEOPS_DATA_DIR=/var/data`, or move photo storage to object storage for a production-scale system.
 
 ### GitHub

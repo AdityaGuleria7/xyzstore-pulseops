@@ -6,7 +6,16 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
     plugins: [react(), tailwindcss()],
-    server: { port: 3000, host: '0.0.0.0' },
+    server: {
+      port: 3000,
+      host: '0.0.0.0',
+      proxy: {
+        '/api': {
+          target: 'http://127.0.0.1:8000',
+          changeOrigin: true,
+        },
+      },
+    },
     preview: { port: 4173, host: '0.0.0.0' },
     build: { outDir: 'build' },
     define: {

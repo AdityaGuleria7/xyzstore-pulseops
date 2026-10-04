@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Printer, Flag, Table2, Columns3, Tag, Package, Sparkles, X, Zap, MapPin, ExternalLink, Clock3, ChevronRight, CircleCheck, Layers3, Search, RotateCcw } from 'lucide-react';
+import { Printer, Flag, Table2, Columns3, Tag, Package, Sparkles, X, Zap, MapPin, ExternalLink, Clock3, ChevronDown, ChevronRight, CircleCheck, Layers3, Search, RotateCcw, LoaderCircle } from 'lucide-react';
 import { countdown } from './Dashboard';
 import PageHeader from './PageHeader';
 import { STAGE_META } from '../utils/ops';
@@ -32,21 +32,37 @@ function StageSlider({ stage, onJump }) {
 }
 
 
-export default function Orders({ orders, now, flagged, onLabel, onStage, onPrint, onFlag, onWorker, initialStage = 'all' }) {
+export default function Orders({ orders, now, flagged, onLabel, onStage, onPrint, onFlag, onWorker, initialStage = 'all', initialKind = 'all' }) {
   const [view, setView] = useState('table');
   const [q, setQ] = useState(() => { const v = sessionStorage.getItem('pulseops.search') || ''; if (v) sessionStorage.removeItem('pulseops.search'); return v; });
   const [stage, setStage] = useState(initialStage || 'all');
   const [courier, setCourier] = useState('all');
-  const [kind, setKind] = useState('all');
+  const [kind, setKind] = useState(initialKind || 'all');
   const [sel, setSel] = useState([]);
   const [labelFor, setLabelFor] = useState(null);
+  const [savingCourier, setSavingCourier] = useState('');
+  const [labelError, setLabelError] = useState('');
   const [menu, setMenu] = useState(null);
   const [timerNow, setTimerNow] = useState(now);
   const [kanbanStage, setKanbanStage] = useState(stage === 'all' ? 'received' : stage);
+  const deadlineWindow = Math.floor(timerNow.getTime() / 60000) * 60000;
   const kanbanColumnRefs = useRef({});
+  const labelTriggerRef = useRef(null);
   useEffect(() => { const t = setInterval(() => setTimerNow(new Date()), 1000); return () => clearInterval(t); }, []);
   useEffect(() => { setStage(initialStage || 'all'); }, [initialStage]);
+  useEffect(() => { setKind(initialKind || 'all'); }, [initialKind]);
   useEffect(() => { if (view === 'kanban') setKanbanStage(stage === 'all' ? (kanbanStage || 'received') : stage); }, [view, stage]);
+  useEffect(() => {
+    if (!labelFor) return undefined;
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape' && !savingCourier) {
+        setLabelFor(null);
+        requestAnimationFrame(() => labelTriggerRef.current?.focus());
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [labelFor, savingCourier]);
 
   const jumpToStage = (key) => {
     setView('kanban');
@@ -60,20 +76,59 @@ export default function Orders({ orders, now, flagged, onLabel, onStage, onPrint
   const rows = useMemo(() => orders.filter(o =>
     (stage === 'all' || stageOf(o) === stage) &&
     (courier === 'all' || o.courier === courier) &&
-    (kind === 'all' || (kind === 'priority' ? o.priority === 'priority' : flagged.includes(o.id))) &&
+    (kind === 'all' ||
+      (kind === 'priority' ? o.priority === 'priority' && !['shipped', 'delivered', 'cancelled'].includes(o.status) :
+        kind === 'at-risk' ? !['shipped', 'delivered', 'cancelled'].includes(o.status) && new Date(o.deadline).getTime() < deadlineWindow + 3600000 :
+          flagged.includes(o.id))) &&
     `${o.id} ${o.customer} ${o.product} ${o.variant} ${o.sku} ${o.city} ${o.state} ${o.country}`.toLowerCase().includes(q.toLowerCase())
-  ), [orders, q, stage, courier, kind, flagged]);
+  ), [orders, q, stage, courier, kind, flagged, deadlineWindow]);
 
   const toggle = id => setSel(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
+  const createOrderLabel = async (courierOption) => {
+    if (!labelFor || savingCourier) return;
+    setSavingCourier(courierOption.name);
+    setLabelError('');
+    try {
+      await onLabel(labelFor.id, courierOption.name, courierOption.cost);
+      setLabelFor(null);
+      requestAnimationFrame(() => labelTriggerRef.current?.focus());
+    } catch {
+      setLabelError('The label could not be created. Check the error notification and try again.');
+    } finally {
+      setSavingCourier('');
+    }
+  };
+  const closeLabelDialog = () => {
+    if (savingCourier) return;
+    setLabelFor(null);
+    requestAnimationFrame(() => labelTriggerRef.current?.focus());
+  };
   const act = (o) => {
     const s = stageOf(o);
-    if (s === 'received' || s === 'processing') return <button onClick={() => setLabelFor(o)} className="inline-flex items-center gap-2 bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 rounded-lg cursor-pointer hover:bg-slate-800"><Tag className="w-3.5 h-3.5" />Create label</button>;
+    if (s === 'received' || s === 'processing') return <button onClick={event => { labelTriggerRef.current = event.currentTarget; setLabelError(''); setLabelFor(o); }} className="orders-row-action inline-flex items-center gap-2 bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 rounded-lg cursor-pointer hover:bg-slate-800"><Tag className="w-3.5 h-3.5" />Create label</button>;
     if (s === 'picking') return <button onClick={onWorker} className="border border-blue-200 text-blue-700 bg-blue-50/60 text-xs font-semibold px-3 py-2 rounded-lg cursor-pointer hover:bg-blue-100">Pick in Worker</button>;
     if (s === 'packing') return <button onClick={() => onStage([o.id])} className="inline-flex items-center gap-2 bg-slate-900 text-white text-xs font-semibold px-3.5 py-2 rounded-lg cursor-pointer hover:bg-slate-800"><Package className="w-3.5 h-3.5" />Move to staging</button>;
     if (o.trackingLink) return <a href={o.trackingLink} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600">Tracking <ExternalLink className="w-3 h-3" /></a>;
     return <span className="text-[10px] text-slate-400">No action</span>;
   };
-  const flag = (o) => <div className="relative"><button aria-label={`Flag ${o.id}`} onClick={() => setMenu(menu === o.id ? null : o.id)} className="p-1.5 text-slate-400 hover:text-red-600 cursor-pointer"><Flag className="w-4 h-4" /></button>{menu === o.id && <div className="absolute right-0 top-full mt-1 z-30 w-48 bg-white border border-slate-200 rounded-xl shadow-lg p-2">{FLAG_REASONS.map(r => <button key={r} onClick={() => { onFlag(o, r); setMenu(null); }} className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 rounded cursor-pointer">{r}</button>)}</div>}</div>;
+  const flag = (o) => <div className="orders-flag-menu-wrap">
+    <button
+      type="button"
+      aria-label={`Flag ${o.id}`}
+      aria-haspopup="true"
+      aria-expanded={menu === o.id}
+      aria-controls={menu === o.id ? `flag-menu-${o.id}` : undefined}
+      onClick={() => setMenu(menu === o.id ? null : o.id)}
+      className={`orders-flag-trigger p-1.5 text-slate-400 hover:text-red-600 cursor-pointer ${menu === o.id ? 'is-open' : ''}`}
+    ><Flag className="w-4 h-4" /></button>
+    {menu === o.id && <div id={`flag-menu-${o.id}`} className="orders-flag-menu" role="group" aria-label={`Flag ${o.id} for a problem`}>
+      <div className="orders-flag-menu-heading">
+        <strong>Flag this order</strong>
+        <span>{o.id} · choose a reason</span>
+      </div>
+      <div className="orders-flag-menu-options">{FLAG_REASONS.map(r => <button type="button" key={r} onClick={() => { onFlag(o, r); setMenu(null); }} className="orders-flag-option"><span className="orders-flag-option-mark" aria-hidden="true" /><span>{r}</span><ChevronRight className="orders-flag-option-arrow" aria-hidden="true" /></button>)}</div>
+    </div>}
+  </div>;
   const dl = o => { const c = countdown(o.deadline, timerNow); return <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full border whitespace-nowrap ${c.cls}`}><Clock3 className="w-3 h-3" />{c.text}</span>; };
   const eligible = COURIER_OPTIONS.filter(c => !passed(c.cutoff, timerNow));
   const best = labelFor ? (eligible.slice().sort((a, b) => a.cost - b.cost)[0] || COURIER_OPTIONS[0]) : null;
@@ -96,22 +151,22 @@ export default function Orders({ orders, now, flagged, onLabel, onStage, onPrint
         <label className="orders-search-field">
           <Search className="orders-search-icon" aria-hidden="true" />
           <span className="sr-only">Search orders</span>
-          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search orders, SKU, customer, country or state" className="ops-field" />
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search orders, SKU, customer or location" className="ops-field" />
           {q && <button type="button" onClick={() => setQ('')} aria-label="Clear search" className="orders-search-clear">×</button>}
         </label>
         <div className="orders-toolbar-top-actions">
           <div className="orders-view-switcher" role="group" aria-label="Orders view">
             {viewButtons.map(([k, l, I]) => <button key={k} type="button" onClick={() => setView(k)} className={`orders-view-toggle inline-flex items-center justify-center gap-2 rounded-lg text-xs font-bold cursor-pointer ${view === k ? 'is-active' : ''}`}><I className="w-4 h-4" />{l}</button>)}
           </div>
-          <div className="orders-result-count"><strong>{rows.length}</strong><span>matching</span>{sel.length > 0 && <span className="orders-selected-count">{sel.length} selected</span>}{sel.length > 0 && selectedStageable.length !== sel.length && <span className="orders-selection-note">{selectedStageable.length} stageable</span>}</div>
+          <div className="orders-result-count" aria-live="polite"><strong>{rows.length}</strong><span>matching</span>{sel.length > 0 && <span className="orders-selected-count">{sel.length} selected</span>}{sel.length > 0 && selectedStageable.length !== sel.length && <span className="orders-selection-note">{selectedStageable.length} stageable</span>}</div>
         </div>
       </div>
 
       <div className="orders-toolbar-bottom">
         <div className="orders-filter-grid">
-          <select value={stage} onChange={e => setStage(e.target.value)} className="ops-field"><option value="all">All stages</option>{STAGES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select>
-          <select value={courier} onChange={e => setCourier(e.target.value)} className="ops-field"><option value="all">All couriers</option>{COURIER_OPTIONS.map(c => <option key={c.name}>{c.name}</option>)}</select>
-          <select value={kind} onChange={e => setKind(e.target.value)} className="ops-field"><option value="all">All orders</option><option value="priority">Priority only</option><option value="flagged">Flagged only</option></select>
+          <label className="orders-filter-select-wrap"><span className="sr-only">Filter orders by stage</span><select aria-label="Filter orders by stage" value={stage} onChange={e => setStage(e.target.value)} className="orders-filter-select"><option value="all">All stages</option>{STAGES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select><ChevronDown className="orders-filter-chevron" aria-hidden="true" /></label>
+          <label className="orders-filter-select-wrap"><span className="sr-only">Filter orders by courier</span><select aria-label="Filter orders by courier" value={courier} onChange={e => setCourier(e.target.value)} className="orders-filter-select"><option value="all">All couriers</option>{COURIER_OPTIONS.map(c => <option key={c.name}>{c.name}</option>)}</select><ChevronDown className="orders-filter-chevron" aria-hidden="true" /></label>
+          <label className="orders-filter-select-wrap"><span className="sr-only">Filter orders by type</span><select aria-label="Filter orders by type" value={kind} onChange={e => setKind(e.target.value)} className="orders-filter-select"><option value="all">All orders</option><option value="priority">Priority only</option><option value="at-risk">At-risk deadlines</option><option value="flagged">Flagged only</option></select><ChevronDown className="orders-filter-chevron" aria-hidden="true" /></label>
         </div>
         <div className="orders-toolbar-actions">
           <button type="button" disabled={!sel.length} onClick={() => onPrint(sel)} className="ops-secondary orders-action-button"><Printer className="w-4 h-4" />Print labels <span className="orders-action-count">{sel.length || ''}</span></button>
@@ -124,7 +179,7 @@ export default function Orders({ orders, now, flagged, onLabel, onStage, onPrint
     {view === 'table' ? <div className="ops-card orders-table-wrap overflow-x-auto">
       <table className="w-full text-sm orders-table">
         <thead className="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500"><tr>{['', 'Order', 'Items', 'Location', 'Stage', 'Courier', 'Deadline', 'Updated', 'Action', ''].map((h, i) => <th key={i} className="px-4 py-3.5 text-left font-semibold">{h}</th>)}</tr></thead>
-        <tbody>{rows.slice(0, 100).map(o => <tr key={o.id} className="border-t border-slate-100 hover:bg-slate-50/60"><td className="px-4 py-3"><input type="checkbox" checked={sel.includes(o.id)} onChange={() => toggle(o.id)} className="w-4 h-4" /></td><td className="px-4 py-3"><div className="font-mono font-bold text-xs">{o.id}{o.priority === 'priority' && <Zap className="inline w-3.5 h-3.5 ml-1 text-purple-600" />}</div><div className="text-[10px] text-slate-500">{o.customer}</div></td><td className="px-4 py-3"><Chip o={o} /></td><td className="px-4 py-3"><div className="text-[10px] font-semibold">{o.city}</div><div className="text-[10px] text-slate-400">{o.state} · {o.country}</div></td><td className="px-4 py-3"><span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${STAGE_META.find(s => s.key === stageOf(o))?.soft || 'bg-slate-100 text-slate-600 border-slate-200'}`}>{stageName(stageOf(o))}</span></td><td className="px-4 py-3 text-[10px] text-slate-600">{o.courier || '—'}</td><td className="px-4 py-3">{dl(o)}</td><td className="px-4 py-3 text-[9px] text-slate-400 whitespace-nowrap">{o.updatedAt ? new Date(o.updatedAt).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}</td><td className="px-4 py-3 text-right">{act(o)}</td><td className="px-4 py-3">{flag(o)}</td></tr>)}</tbody>
+        <tbody>{rows.slice(0, 100).map(o => <tr key={o.id} className="border-t border-slate-100 hover:bg-slate-50/60"><td className="px-4 py-3"><input type="checkbox" checked={sel.includes(o.id)} onChange={() => toggle(o.id)} aria-label={`Select ${o.id}`} className="w-4 h-4" /></td><td className="px-4 py-3"><div className="font-mono font-bold text-xs">{o.id}{o.priority === 'priority' && <Zap className="inline w-3.5 h-3.5 ml-1 text-purple-600" />}</div><div className="text-[10px] text-slate-500">{o.customer}</div></td><td className="px-4 py-3"><Chip o={o} /></td><td className="px-4 py-3"><div className="text-[10px] font-semibold">{o.city}</div><div className="text-[10px] text-slate-400">{o.state} · {o.country}</div></td><td className="px-4 py-3"><span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border ${STAGE_META.find(s => s.key === stageOf(o))?.soft || 'bg-slate-100 text-slate-600 border-slate-200'}`}>{stageName(stageOf(o))}</span></td><td className="px-4 py-3 text-[10px] text-slate-600">{o.courier || '—'}</td><td className="px-4 py-3">{dl(o)}</td><td className="px-4 py-3 text-[9px] text-slate-400 whitespace-nowrap">{o.updatedAt ? new Date(o.updatedAt).toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}</td><td className="orders-table-action-cell px-4 py-3 text-right">{act(o)}</td><td className="px-4 py-3">{flag(o)}</td></tr>)}{!rows.length && <tr><td colSpan={10} className="orders-empty-state px-6 py-14 text-center"><div className="mx-auto max-w-sm"><p className="orders-empty-title text-sm font-semibold">No orders match these filters</p><p className="orders-empty-description mt-1 text-xs">Try a different search or clear the filters to see your full queue.</p><button type="button" onClick={() => { setQ(''); setStage('all'); setCourier('all'); setKind('all'); setSel([]); }} className="ops-secondary mt-4 text-xs">Clear filters</button></div></td></tr>}</tbody>
       </table>
       {rows.length > 100 && <div className="p-3 text-center text-[10px] text-slate-400">Showing 100 of {rows.length}. Narrow the filters to work the rest.</div>}
     </div> : <div className="kanban-layout">
@@ -145,10 +200,14 @@ export default function Orders({ orders, now, flagged, onLabel, onStage, onPrint
                 <div className="mt-2"><Chip o={o} /></div>
                 <div className="flex items-center gap-1.5 mt-3 text-[9px] text-slate-400"><MapPin className="w-3 h-3" />{o.city}, {o.state} · {o.country}</div>
                 <div className="mt-3 flex items-center justify-between gap-2"><span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full border ${c.cls}`}><Clock3 className="w-3 h-3" />{c.text}</span><span className="text-[9px] font-mono text-slate-400">{new Date(o.deadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span></div>
-                <div className="kanban-order-interaction-row"><StageSlider stage={k} onJump={jumpToStage} /><div className="flex-1 min-w-0">
-                  <div className="mt-1 flex items-center justify-between gap-2"><div className="text-[9px] text-slate-400 flex items-center gap-1"><CircleCheck className="w-3 h-3" />{stageName(k)}</div>{act(o)}</div>
-                  {(o.trackingLink || o.courier) && <div className="mt-2 pt-2 border-t border-slate-100 text-[9px] text-slate-400 flex items-center justify-between"><span className="truncate pr-2">{o.courier || 'Courier pending'}</span>{o.trackingLink ? <a href={o.trackingLink} target="_blank" rel="noreferrer" className="text-blue-600 inline-flex items-center gap-1 shrink-0">Track <ExternalLink className="w-2.5 h-2.5" /></a> : <span>Tracking pending</span>}</div>}
-                </div></div>
+                <div className="kanban-order-interaction-row">
+                  <StageSlider stage={k} onJump={jumpToStage} />
+                  <div className="kanban-order-details">
+                    <div className="kanban-order-stage-meta"><CircleCheck className="w-3 h-3" />{stageName(k)}</div>
+                    {(o.trackingLink || o.courier) && <div className="kanban-order-tracking"><span className="truncate">{o.courier || 'Courier pending'}</span>{o.trackingLink ? <a href={o.trackingLink} target="_blank" rel="noreferrer">Track <ExternalLink className="w-2.5 h-2.5" /></a> : <span>Tracking pending</span>}</div>}
+                    <div className="kanban-order-action">{act(o)}</div>
+                  </div>
+                </div>
               </article>; })}
               {!stageRows.length && <div className="ops-card p-8 text-center text-xs text-slate-400">No orders in this stage.</div>}
               {stageRows.length > 100 && <div className="text-center text-[10px] text-slate-400 py-2">Showing first 100 of {stageRows.length}</div>}
@@ -159,8 +218,8 @@ export default function Orders({ orders, now, flagged, onLabel, onStage, onPrint
       </div>
     </div>}
 
-    {labelFor && best && <div className="fixed inset-0 z-50 bg-slate-950/55 backdrop-blur-[1px] flex items-center justify-center p-4" onClick={() => setLabelFor(null)}>
-      <div className="bg-white rounded-2xl w-full max-w-xl p-6 relative border border-slate-200 shadow-2xl" onClick={e => e.stopPropagation()}><button onClick={() => setLabelFor(null)} className="absolute right-4 top-4 p-2 rounded-lg hover:bg-slate-50 cursor-pointer"><X className="w-4 h-4" /></button><h2 className="text-xl font-extrabold">Create Label · {labelFor.id}</h2><p className="text-xs text-slate-500 mt-1 mb-4">Compare courier cost, speed, pickup and cutoff before assigning the label.</p><div className="space-y-2">{COURIER_OPTIONS.map(c => { const cutoffPassed = passed(c.cutoff, timerNow); const isBest = !cutoffPassed && c.name === best.name; return <button key={c.name} disabled={cutoffPassed} onClick={() => { onLabel(labelFor.id, c.name, c.cost); setLabelFor(null); }} className={`w-full text-left border rounded-xl p-4 cursor-pointer flex items-center justify-between gap-4 ${isBest ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200'} ${cutoffPassed ? 'opacity-45 cursor-not-allowed' : 'hover:border-slate-400'}`}><div><div className="font-bold text-sm flex items-center gap-2">{c.name}{isBest && <span className="text-[9px] text-emerald-700 inline-flex items-center gap-1"><Sparkles className="w-3 h-3" />BEST VALUE</span>}</div><div className="text-[10px] text-slate-500 mt-0.5">{c.speed} · pickup {c.pickup} · cutoff {c.cutoff}</div></div><div className="text-lg font-mono font-bold">₹{c.cost}</div></button>; })}</div></div>
+    {labelFor && best && <div className="fixed inset-0 z-50 bg-slate-950/55 backdrop-blur-[1px] flex items-center justify-center p-4" onClick={closeLabelDialog} role="presentation">
+      <div className="bg-white rounded-2xl w-full max-w-xl p-6 relative border border-slate-200 shadow-2xl" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="create-label-dialog-title"><button type="button" autoFocus aria-label="Close create label dialog" disabled={!!savingCourier} onClick={closeLabelDialog} className="absolute right-4 top-4 p-2 rounded-lg hover:bg-slate-50 cursor-pointer disabled:cursor-wait"><X className="w-4 h-4" /></button><h2 id="create-label-dialog-title" className="text-xl font-extrabold">Create Label · {labelFor.id}</h2><p className="text-xs text-slate-500 mt-1 mb-4">Compare courier cost, speed, pickup and cutoff before assigning the label.</p>{labelError && <p className="mb-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-800" role="alert">{labelError}</p>}<div className="space-y-2">{COURIER_OPTIONS.map(c => { const cutoffPassed = passed(c.cutoff, timerNow); const isBest = !cutoffPassed && c.name === best.name; const isSaving = savingCourier === c.name; return <button key={c.name} type="button" disabled={cutoffPassed || !!savingCourier} onClick={() => createOrderLabel(c)} aria-busy={isSaving} className={`w-full text-left border rounded-xl p-4 cursor-pointer flex items-center justify-between gap-4 disabled:cursor-wait ${isBest ? 'border-emerald-300 bg-emerald-50/40' : 'border-slate-200'} ${cutoffPassed ? 'opacity-45 cursor-not-allowed' : 'hover:border-slate-400'}`}><div><div className="font-bold text-sm flex items-center gap-2">{c.name}{isBest && <span className="text-[9px] text-emerald-700 inline-flex items-center gap-1"><Sparkles className="w-3 h-3" />BEST VALUE</span>}{isSaving && <span className="text-[10px] font-medium text-slate-500 inline-flex items-center gap-1"><LoaderCircle className="w-3 h-3 animate-spin" />Creating</span>}</div><div className="text-[10px] text-slate-500 mt-0.5">{c.speed} · pickup {c.pickup} · cutoff {c.cutoff}</div></div><div className="text-lg font-mono font-bold">₹{c.cost}</div></button>; })}</div></div>
     </div>}
   </div>;
 }

@@ -1,3 +1,8 @@
+import os
+import subprocess
+import sys
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 from app import app
 
@@ -12,6 +17,30 @@ def token(email="admin@example.com", password="admin123"):
 
 def test_health():
     assert client.get("/api/health").status_code == 200
+
+
+def test_production_rejects_demo_account_emails():
+    env = os.environ.copy()
+    env.update({
+        "PULSEOPS_ENV": "production",
+        "JWT_SECRET": "production-test-secret-that-is-long-enough",
+        "ADMIN_EMAIL": "admin@example.com",
+        "ADMIN_PASSWORD": "strong-admin-test-password",
+        "PACKER_EMAIL": "packer@example.com",
+        "PACKER_PASSWORD": "strong-packer-test-password",
+        "MONGO_URL": "mongodb://127.0.0.1:27017",
+    })
+    result = subprocess.run(
+        [sys.executable, "-c", "import app"],
+        cwd=Path(__file__).resolve().parents[1],
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=5,
+    )
+
+    assert result.returncode != 0
+    assert "ADMIN_EMAIL, PACKER_EMAIL" in result.stderr
 
 
 def test_admin_bootstrap_has_250_orders():

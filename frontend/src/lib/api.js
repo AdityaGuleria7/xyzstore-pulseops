@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = process.env.REACT_APP_BACKEND_URL || (window.location.hostname === 'localhost' && window.location.port === '3000' ? 'http://localhost:8000' : window.location.origin);
+const BASE_URL = process.env.REACT_APP_BACKEND_URL || (import.meta.env.DEV ? '' : window.location.origin);
 const api = axios.create({ baseURL: BASE_URL, timeout: 15000 });
 
 api.interceptors.request.use((config) => {

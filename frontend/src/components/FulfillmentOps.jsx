@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Camera, Check, ChevronDown, Clock3, ExternalLink, FileSpreadsheet, PackageCheck, Printer, Tag, Upload, Boxes, ShieldCheck, Users, ScanLine, MapPin, Truck, X, CalendarDays, Activity, Gauge, UserRound, CheckCircle2 } from 'lucide-react';
 import { COURIER_OPTIONS, stageOf } from './Orders';
 import { countdown } from './Dashboard';
@@ -151,10 +151,155 @@ export function LabelCenter({ orders, onLabel }) {
 }
 
 export function WorkerMode({ orders, inventory, onScan, onSeal, stats }) {
-  const queue=useMemo(()=>orders.filter(o=>o.status==='processing'&&!!o.courier).sort((a,b)=>(a.priority===b.priority?0:a.priority==='priority'?-1:1)||new Date(a.deadline)-new Date(b.deadline)),[orders]); const [activeId,setActiveId]=useState(queue[0]?.id||''); const [code,setCode]=useState(''); const [cameraOpen,setCameraOpen]=useState(false); const next=queue.find(o=>o.id===activeId)||queue[0];
-  if(!next)return <div className="ops-page"><PageHeader title="Worker Mode" help="No open work in the pick queue."/><div className="ops-card p-12 text-center text-slate-400"><Check className="mx-auto w-10 h-10 text-emerald-600 mb-2"/>Pick queue clear</div></div>;
-  const inv=inventory.find(i=>i.barcode===next.barcode); const scanned=next.scanned||0; const complete=scanned>=next.quantity; const submit=value=>{const v=String(value||'').trim();if(!v)return;onScan(next,v);setCode('');setCameraOpen(false);};
-  return <div className="ops-page space-y-5"><PageHeader title="Worker Mode — Pick & Pack" help="Pick queue, shelf location, variant verification, unit scans, sealing, and staging handoff." right={<Pill tone={next.priority==='priority'?'purple':'slate'}>{next.priority==='priority'?'EXPRESS PRIORITY':'STANDARD'}</Pill>}/><div className="grid grid-cols-2 lg:grid-cols-4 gap-3">{[['Units picked',stats.unitsPicked],['Mis-scans caught',stats.misScans],['Boxes sealed',stats.boxesSealed],['Orders handled',stats.ordersHandled]].map(([l,v])=><div key={l} className="ops-card p-4"><div className="metric-label">{l}</div><div className="metric-value">{v}</div></div>)}</div><div className="grid lg:grid-cols-[minmax(0,1fr)_300px] gap-4 items-start"><div className="bg-slate-900 text-white rounded-2xl p-6 shadow-lg self-start worker-work-card"><div className="flex justify-between gap-3"><div><div className="text-[10px] text-slate-400 font-bold tracking-wider">NEXT ORDER</div><div className="text-2xl font-extrabold mt-1">{next.id}</div><div className="text-xs text-slate-400 mt-1">{next.customer} · {next.city}, {next.state}</div></div><div className="text-right"><div className="text-[10px] text-slate-400">DEADLINE</div><div className="font-bold mt-1">{new Date(next.deadline).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div></div></div><div className="grid sm:grid-cols-2 gap-3 mt-6"><div className="bg-white/10 rounded-xl p-4"><div className="text-[10px] text-slate-400 font-bold">SHELF LOCATION</div><div className="text-2xl font-extrabold mt-1">{inv?.location||'VERIFY BIN'}</div></div><div className="bg-white/10 rounded-xl p-4"><div className="text-[10px] text-slate-400 font-bold">VARIANT</div><div className="inline-flex mt-2 px-3 py-1.5 bg-white text-slate-900 rounded-lg font-extrabold">{next.variant}</div></div></div><div className="mt-4 bg-white text-slate-900 rounded-xl p-4"><div className="flex items-center justify-between gap-3"><div><b>{next.product}</b><div className="text-[11px] text-slate-500 mt-1">SKU {next.sku} · {scanned}/{next.quantity} units scanned</div></div>{complete?<button onClick={()=>onSeal(next)} className="bg-emerald-600 text-white rounded-xl px-6 py-3 text-sm font-extrabold"><Boxes className="inline w-5 h-5 mr-2"/>Seal box</button>:<span className="text-[10px] font-bold text-slate-500">Scan every unit</span>}</div>{!complete&&<div className="mt-4"><div className="flex gap-2"><input value={code} onChange={e=>setCode(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit(code)} placeholder="Scan / enter barcode" className="ops-field flex-1 font-mono"/><button onClick={()=>submit(code)} className="ops-primary"><ScanLine className="w-4 h-4 mr-1"/>Scan</button><button onClick={()=>setCameraOpen(true)} className="ops-secondary"><Camera className="w-4 h-4 mr-1"/>Camera</button></div><button onClick={()=>submit(next.barcode)} className="text-[10px] text-slate-500 hover:text-slate-900 mt-2 cursor-pointer">Use demo barcode</button></div>}<div className="mt-4"><div className="flex justify-between text-[10px] text-slate-400"><span>Scan progress</span><span>{scanned}/{next.quantity}</span></div><div className="h-2 bg-slate-100 rounded-full mt-1 overflow-hidden"><div className="h-full bg-emerald-500" style={{width:`${Math.min(100,scanned/Math.max(1,next.quantity)*100)}%`}}/></div></div></div></div><div className="ops-card p-4 worker-queue-card"><div className="flex items-center gap-2 text-sm font-bold"><Clock3 className="w-4 h-4 text-sky-600"/>Pick Queue ({queue.length})</div><div className="mt-3 space-y-1">{queue.slice(0,15).map(o=><button key={o.id} onClick={()=>{setActiveId(o.id);setCode('')}} className={`w-full text-left rounded-lg p-2.5 border ${o.id===next.id?'border-slate-900 bg-slate-50':'border-transparent hover:bg-slate-50'} cursor-pointer`}><div className="flex justify-between"><span className="font-mono text-[10px] font-bold">{o.id}</span>{o.priority==='priority'&&<span className="text-[9px] font-bold text-purple-700">EXPRESS</span>}</div><div className="text-[10px] text-slate-500 truncate mt-1">{o.product}</div></button>)}</div></div></div><CameraScanner open={cameraOpen} onClose={()=>setCameraOpen(false)} title="Scan Item Barcode" hint="The server verifies the barcode against the active order." onDetected={submit}/></div>;
+  const queue = useMemo(() => orders
+    .filter(order => order.status === 'processing' && Boolean(order.courier))
+    .sort((a, b) => {
+      if (a.priority !== b.priority) return a.priority === 'priority' ? -1 : 1;
+      return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+    }), [orders]);
+  const [activeId, setActiveId] = useState('');
+  const [code, setCode] = useState('');
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const next = queue.find(order => order.id === activeId) || queue[0];
+  const workerStats = stats || {};
+
+  useEffect(() => {
+    setActiveId(current => queue.some(order => order.id === current) ? current : queue[0]?.id || '');
+  }, [queue]);
+
+  const submit = (value) => {
+    const barcode = String(value || '').trim();
+    if (!next || !barcode) return;
+    onScan(next, barcode);
+    setCode('');
+    setCameraOpen(false);
+  };
+
+  if (!next) {
+    return <div className="ops-page worker-mode-page">
+      <PageHeader title="Worker Mode" description="Your pick and pack workspace." help="Orders enter this queue after they are assigned for picking." />
+      <section className="worker-empty-state">
+        <span className="worker-empty-icon"><CheckCircle2 aria-hidden="true" /></span>
+        <h2>You're all caught up</h2>
+        <p>There are no orders waiting in your pick queue. New assigned work will appear here.</p>
+      </section>
+    </div>;
+  }
+
+  const inventoryItem = inventory.find(item => item.barcode === next.barcode);
+  const scanned = Number(next.scanned || 0);
+  const quantity = Number(next.quantity || 0);
+  const complete = quantity > 0 && scanned >= quantity;
+  const progress = Math.min(100, scanned / Math.max(1, quantity) * 100);
+  const metrics = [
+    ['Units picked', workerStats.unitsPicked || 0, ScanLine],
+    ['Mis-scans caught', workerStats.misScans || 0, ShieldCheck],
+    ['Boxes sealed', workerStats.boxesSealed || 0, Boxes],
+    ['Orders handled', workerStats.ordersHandled || 0, PackageCheck],
+  ];
+
+  return <div className="ops-page worker-mode-page">
+    <PageHeader
+      title="Worker Mode"
+      description="Pick, verify, and pack orders assigned to your queue."
+      help="Scan each unit against the assigned order, then seal the completed box for staging."
+      right={<Pill tone={next.priority === 'priority' ? 'purple' : 'slate'}>{next.priority === 'priority' ? 'EXPRESS PRIORITY' : 'STANDARD'}</Pill>}
+    />
+
+    <div className="worker-stats-grid">
+      {metrics.map(([label, value, Icon]) => <article className="worker-stat-card" key={label}>
+        <span className="worker-stat-icon"><Icon aria-hidden="true" /></span>
+        <span className="worker-stat-copy"><span>{label}</span><strong>{value}</strong></span>
+      </article>)}
+    </div>
+
+    <div className="worker-mode-layout">
+      <section className="worker-work-card" aria-label={`Active order ${next.id}`}>
+        <header className="worker-order-header">
+          <div className="min-w-0">
+            <span className="worker-section-label">Next order</span>
+            <h2>{next.id}</h2>
+            <p>{next.customer} <span>·</span> {next.city}, {next.state}</p>
+          </div>
+          <div className="worker-deadline">
+            <span className="worker-section-label">Dispatch deadline</span>
+            <strong>{new Date(next.deadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong>
+          </div>
+        </header>
+
+        <div className="worker-pick-details">
+          <div className="worker-pick-detail">
+            <span className="worker-section-label">Shelf location</span>
+            <strong>{inventoryItem?.location || 'Verify bin'}</strong>
+          </div>
+          <div className="worker-pick-detail">
+            <span className="worker-section-label">Variant</span>
+            <strong>{next.variant || 'Standard'}</strong>
+          </div>
+        </div>
+
+        <div className="worker-product-panel">
+          <div className="worker-product-heading">
+            <div className="min-w-0">
+              <h3>{next.product}</h3>
+              <p>SKU {next.sku} <span>·</span> {scanned} of {quantity} units scanned</p>
+            </div>
+            {complete && <button type="button" onClick={() => onSeal(next)} className="worker-seal-button"><Boxes aria-hidden="true" /> Seal box</button>}
+          </div>
+
+          {!complete && <div className="worker-scan-section">
+            <label className="worker-section-label" htmlFor="worker-barcode">Scan item barcode</label>
+            <div className="worker-scan-controls">
+              <input
+                id="worker-barcode"
+                value={code}
+                onChange={event => setCode(event.target.value)}
+                onKeyDown={event => event.key === 'Enter' && submit(code)}
+                placeholder="Scan or enter barcode"
+                className="ops-field worker-scan-input"
+                autoComplete="off"
+                autoFocus
+              />
+              <button type="button" onClick={() => submit(code)} className="ops-primary worker-scan-button"><ScanLine aria-hidden="true" />Scan item</button>
+              <button type="button" onClick={() => setCameraOpen(true)} className="ops-secondary worker-camera-button"><Camera aria-hidden="true" />Camera</button>
+            </div>
+            <button type="button" onClick={() => submit(next.barcode)} className="worker-demo-scan">Use demo barcode</button>
+          </div>}
+
+          <div className="worker-progress">
+            <div><span>Pick progress</span><strong>{scanned}/{quantity}</strong></div>
+            <div className="worker-progress-track" role="progressbar" aria-label="Order scan progress" aria-valuemin={0} aria-valuemax={quantity} aria-valuenow={Math.min(scanned, quantity)}>
+              <span style={{ width: `${progress}%` }} />
+            </div>
+            {complete && <p><CheckCircle2 aria-hidden="true" /> All units verified. Seal the box to continue.</p>}
+          </div>
+        </div>
+      </section>
+
+      <aside className="worker-queue-card" aria-label="Pick queue">
+        <header className="worker-queue-heading">
+          <div><Clock3 aria-hidden="true" /><h2>Pick queue</h2></div>
+          <span>{queue.length}</span>
+        </header>
+        <div className="worker-queue-list">
+          {queue.slice(0, 15).map((order, index) => <button
+            type="button"
+            key={order.id}
+            onClick={() => { setActiveId(order.id); setCode(''); }}
+            aria-current={order.id === next.id ? 'true' : undefined}
+            className={`worker-queue-item${order.id === next.id ? ' is-active' : ''}`}
+            style={{ '--queue-order': index }}
+          >
+            <span className="worker-queue-item-top"><strong>{order.id}</strong>{order.priority === 'priority' && <span>Express</span>}</span>
+            <span className="worker-queue-item-name">{order.product}</span>
+            <span className="worker-queue-item-meta">{order.quantity} unit{order.quantity === 1 ? '' : 's'} <i /> {new Date(order.deadline).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          </button>)}
+        </div>
+        {queue.length > 15 && <footer className="worker-queue-footer">Showing the next 15 of {queue.length} assigned orders</footer>}
+      </aside>
+    </div>
+    <CameraScanner open={cameraOpen} onClose={() => setCameraOpen(false)} title="Scan item barcode" hint="The server verifies the barcode against the active order." onDetected={submit} />
+  </div>;
 }
 
 export function ShiftReport({ stats, activity = [], currentUser, workers = [], canViewAll = false }) {

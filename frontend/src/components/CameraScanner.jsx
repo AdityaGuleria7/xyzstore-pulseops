@@ -15,6 +15,10 @@ export default function CameraScanner({ open, onClose, onDetected, title = 'Came
   useEffect(() => {
     if (!open) return undefined;
     let cancelled = false;
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') onClose?.();
+    };
+    window.addEventListener('keydown', closeOnEscape);
     const start = async () => {
       setError('');
       setManual('');
@@ -69,6 +73,7 @@ export default function CameraScanner({ open, onClose, onDetected, title = 'Came
     start();
     return () => {
       cancelled = true;
+      window.removeEventListener('keydown', closeOnEscape);
       if (timerRef.current) window.clearInterval(timerRef.current);
       timerRef.current = null;
       streamRef.current?.getTracks().forEach(track => track.stop());
@@ -88,7 +93,7 @@ export default function CameraScanner({ open, onClose, onDetected, title = 'Came
   };
 
   return (
-    <div className="fixed inset-0 z-[80] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[80] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose} role="dialog" aria-modal="true" aria-label={title}>
       <div className="w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <div>

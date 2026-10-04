@@ -22,6 +22,7 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('pulseops.token')));
   const [activeView, setActiveView] = useState('dashboard');
   const [orderStageFilter, setOrderStageFilter] = useState('all');
+  const [orderKindFilter, setOrderKindFilter] = useState('all');
   const [now, setNow] = useState(new Date());
   const [toasts, setToasts] = useState([]);
   const [state, setState] = useState(EMPTY);
@@ -72,7 +73,10 @@ export default function App() {
   }, []);
 
   const navigate = useCallback((view, meta = {}) => {
-    if (view === 'orders') setOrderStageFilter(meta.stage || 'all');
+    if (view === 'orders') {
+      setOrderStageFilter(meta.stage || 'all');
+      setOrderKindFilter(meta.kind || 'all');
+    }
     setActiveView(view);
   }, []);
 
@@ -96,18 +100,29 @@ export default function App() {
     setActiveView('dashboard');
   };
 
-  const handleSwitchUser = async (user) => {
-    const target = DEMO_USERS.find((x) => x.role === user.role);
-    if (!target) return;
+  const handleSwitchUser = async ({ role, email, password }) => {
+    if (!DEMO_USERS.some((user) => user.role === role) || !email?.trim() || !password) {
+      addToast('Enter the other account’s email and password to switch roles.', 'error');
+      return false;
+    }
     try {
-      const data = await api.login(target.email, target.password);
+      const currentToken = localStorage.getItem('pulseops.token');
+      const data = await api.login(email.trim(), password);
+      if (data.user.role !== role) {
+        if (currentToken) localStorage.setItem('pulseops.token', currentToken);
+        else localStorage.removeItem('pulseops.token');
+        addToast(`Those credentials do not belong to the ${role} account.`, 'error');
+        return false;
+      }
       setCurrentUser(data.user);
       setIsLoggedIn(true);
       setActiveView(data.user.role === 'Packer' ? 'worker' : 'dashboard');
       await refresh();
       addToast(`Active role: ${data.user.role}`, 'info');
+      return true;
     } catch (error) {
       addToast(api.errorMessage(error, 'Role switch failed'), 'error');
+      return false;
     }
   };
 
@@ -253,9 +268,9 @@ export default function App() {
 
   return <Shell activeView={activeView} setActiveView={setActiveView} currentUser={currentUser} onSwitchUser={handleSwitchUser} onLogout={handleLogout} urgent={urgent} missed={missed} serverStatus={serverStatus} storeSettings={state.settings || { storeName: 'XYZStore', tagline: 'Fulfillment Control Center' }} onSaveStoreSettings={updateStoreSettings}>
     <main>
-      {activeView === 'dashboard' && currentUser.role === 'Admin' && <Dashboard orders={state.orders} now={now} lowStock={low} onNavigate={navigate} workers={state.workers || []} stagedCount={state.boxes.filter((b) => b.status === 'waiting_pickup').length} inboundCount={state.receiving.filter((r) => r.status !== 'received').length} transferCount={transferLines} />}
+      {activeView === 'dashboard' && currentUser.role === 'Admin' && <Dashboard orders={state.orders} now={now} lowStock={low} onNavigate={navigate} workers={state.workers || []} stagedCount={state.boxes.filter((b) => b.status === 'waiting_pickup').length} inboundCount={state.receiving.filter((r) => r.status !== 'received').length} transferCount={transferLines} userName={currentUser.name} />}
       {activeView === 'command' && currentUser.role === 'Admin' && <CommandCenter onNavigate={navigate} workers={state.workers || []} activity={state.activity || []} />}
-      {activeView === 'orders' && currentUser.role === 'Admin' && <Orders orders={state.orders} now={now} flagged={state.issues.map((i) => i.orderId).filter(Boolean)} onLabel={createLabel} onStage={batchStage} onPrint={printLabels} onFlag={flagOrder} onSeal={() => {}} onWorker={() => navigate('worker')} initialStage={orderStageFilter} />}
+      {activeView === 'orders' && currentUser.role === 'Admin' && <Orders orders={state.orders} now={now} flagged={state.issues.map((i) => i.orderId).filter(Boolean)} onLabel={createLabel} onStage={batchStage} onPrint={printLabels} onFlag={flagOrder} onSeal={() => {}} onWorker={() => navigate('worker')} initialStage={orderStageFilter} initialKind={orderKindFilter} />}
       {activeView === 'inventory' && currentUser.role === 'Admin' && <StockLedger inventory={state.inventory} activity={state.activity} onTransfer={transfer} onAudit={audit} onVerify={verifyInventory} />}
       {activeView === 'labels' && currentUser.role === 'Admin' && <LabelCenter orders={state.orders} onLabel={createLabel} />}
       {activeView === 'staging' && currentUser.role === 'Admin' && <StagingView boxes={state.boxes} bays={state.bays} orders={state.orders} now={now} onHandover={handover} onScanBox={stageScan} onTrackingUpdate={updateTracking} />}

@@ -69,8 +69,8 @@ if APP_ENV == "production":
         "ADMIN_PASSWORD": ADMIN_PASSWORD in {"", DEMO_ADMIN_PASSWORD},
         "PACKER_PASSWORD": PACKER_PASSWORD in {"", DEMO_PACKER_PASSWORD},
         "MONGO_URL": not MONGO_URL,
-        "ADMIN_EMAIL": not ADMIN_EMAIL,
-        "PACKER_EMAIL": not PACKER_EMAIL,
+        "ADMIN_EMAIL": not ADMIN_EMAIL.strip() or ADMIN_EMAIL.strip().lower() == DEMO_ADMIN_EMAIL,
+        "PACKER_EMAIL": not PACKER_EMAIL.strip() or PACKER_EMAIL.strip().lower() == DEMO_PACKER_EMAIL,
     }
     missing_or_weak = [name for name, value in required.items() if not value or weak[name]]
     if missing_or_weak:
