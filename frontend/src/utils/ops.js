@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 export const STAGE_META = [
   { key: 'received', label: 'Received', dot: 'bg-slate-400', tone: 'stage-received', soft: 'bg-slate-50 text-slate-700 border-slate-200', hex: '#94a3b8' },
   { key: 'processing', label: 'Processing', dot: 'bg-blue-500', tone: 'stage-processing', soft: 'bg-blue-50 text-blue-700 border-blue-200', hex: '#3b82f6' },

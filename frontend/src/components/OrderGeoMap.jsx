@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Globe2, MapPin, TrendingUp, IndianRupee, Crosshair, Layers3 } from 'lucide-react';
 import L from 'leaflet';

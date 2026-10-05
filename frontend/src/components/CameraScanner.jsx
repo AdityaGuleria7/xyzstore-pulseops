@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 import React, { useEffect, useRef, useState } from 'react';
 import { Camera, X, ScanLine, AlertCircle, Keyboard, CheckCircle2 } from 'lucide-react';
 

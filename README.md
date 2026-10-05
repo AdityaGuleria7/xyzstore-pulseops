@@ -3,7 +3,7 @@
 **A fulfilment control tower for a small e-commerce warehouse (200–300 orders a day).**
 It replaces spreadsheets and shared folders with one live workspace that shows every order, flags delays early, stops wrong-item shipments at the scanner, and tells the team what to do next.
 
-![stack](https://img.shields.io/badge/React_19-Vite-blue) ![api](https://img.shields.io/badge/FastAPI-Python_3.12-green) ![tests](https://img.shields.io/badge/API_tests-16_passing-brightgreen) ![license](https://img.shields.io/badge/license-MIT-lightgrey)
+![stack](https://img.shields.io/badge/React_19-Vite-blue) ![api](https://img.shields.io/badge/FastAPI-Python_3.12-green) ![tests](https://img.shields.io/badge/API_tests-16_passing-brightgreen) ![license](https://img.shields.io/badge/license-Proprietary-red)
 
 ## The problem it solves
 
@@ -80,4 +80,6 @@ Interactive docs at `/docs`. Notable endpoints: `/api/bootstrap`, `/api/orders/{
 
 More: [CASE_STUDY.md](CASE_STUDY.md) · [DEPLOYMENT.md](DEPLOYMENT.md) · [feature history](docs/FEATURES_HISTORY.md) · [release notes](docs/release-notes/)
 
-MIT licensed.
+## Intellectual property
+
+Copyright © 2026 Aditya Guleria. **All rights reserved.** This project is proprietary and is not released under the MIT license. See [LICENSE_PROPRIETARY.md](LICENSE_PROPRIETARY.md) and [NOTICE.md](NOTICE.md). Unauthorized copying, cloning, redistribution, resale, or reuse of the original project is prohibited.

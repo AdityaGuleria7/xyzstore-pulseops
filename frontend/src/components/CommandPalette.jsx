@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, CornerDownLeft, LayoutDashboard, Package, AlertTriangle, ShoppingCart, ArrowUp, ArrowDown, Activity, ScanLine, Truck, Inbox, ClipboardList, FileSpreadsheet } from 'lucide-react';
 

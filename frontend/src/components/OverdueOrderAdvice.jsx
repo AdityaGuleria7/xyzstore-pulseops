@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 import React, { useEffect, useState } from 'react';
 import { AlertTriangle, ChevronDown, ChevronUp, LoaderCircle, Sparkles } from 'lucide-react';
 import * as api from '../lib/api';

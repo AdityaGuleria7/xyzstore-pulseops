@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 import axios from 'axios';
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL || (import.meta.env.DEV ? '' : window.location.origin);

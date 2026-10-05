@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 import React, { useEffect, useState } from 'react';
 import {
   AlertTriangle,
@@ -292,6 +297,10 @@ export default function Shell({
           </div>
         </header>
         <div className="pulseops-content mx-auto max-w-[1440px]">{children}</div>
+        <footer className="pulseops-copyright" aria-label="Copyright notice">
+          <span>© 2026 Aditya Guleria · XYZStore PulseOps</span>
+          <span>Proprietary software · All rights reserved</span>
+        </footer>
       </div>
 
       {switchAccountOpen && otherUser ? (

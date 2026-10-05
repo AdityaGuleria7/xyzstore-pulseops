@@ -1,3 +1,5 @@
+<!-- Copyright © 2026 Aditya Guleria. All rights reserved. -->
+
 # Case study: PulseOps for XYZ Store
 
 ## The problem

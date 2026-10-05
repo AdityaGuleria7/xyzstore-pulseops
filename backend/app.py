@@ -1,3 +1,7 @@
+# Copyright © 2026 Aditya Guleria. All rights reserved.
+# XYZStore · PulseOps — proprietary software.
+# Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+
 import asyncio
 import csv
 import io
@@ -484,6 +488,8 @@ async def security_headers(request: Request, call_next):
     response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
     response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
     response.headers.setdefault("Permissions-Policy", "camera=(self), microphone=(self)")
+    response.headers.setdefault("X-PulseOps-Ownership", "Copyright 2026 Aditya Guleria - All Rights Reserved")
+    response.headers.setdefault("X-PulseOps-License", "PROPRIETARY")
     if APP_ENV == "production":
         response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
     return response

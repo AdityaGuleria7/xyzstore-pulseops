@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 import React, { useMemo, useState } from 'react';
 import { Package, Zap, Clock, Boxes, ArrowRightLeft, Truck, Inbox, Users, BadgeCheck, ShoppingBag, IndianRupee, ChevronDown, ChevronUp, Timer, Activity, ArrowUpRight } from 'lucide-react';
 import PageHeader from './PageHeader';

@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 import React, { useState } from 'react';
 import { Box, Eye, EyeOff, AlertCircle, ArrowRight, ShieldCheck, HardHat, Activity, ServerCrash } from 'lucide-react';
 
@@ -50,6 +55,9 @@ export default function Login({ onLogin, serverStatus = 'connecting', sessionNot
               <div><label htmlFor="login-password" className="text-xs font-semibold">Password</label><div className="relative mt-1.5"><input id="login-password" value={password} onChange={(e) => setPassword(e.target.value)} type={showPass ? 'text' : 'password'} autoComplete="current-password" required className="login-input w-full border border-slate-200 rounded-xl px-3.5 py-2.5 pr-10 text-sm outline-none focus:border-slate-900" /><button type="button" aria-label={showPass ? 'Hide password' : 'Show password'} onClick={() => setShowPass((v) => !v)} className="login-password-toggle absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">{showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}</button></div></div>
               <button disabled={loading} className="login-submit w-full disabled:opacity-50 text-white rounded-xl py-3 text-xs font-bold flex items-center justify-center gap-2">{loading ? 'Connecting…' : 'Sign in'} {!loading && <ArrowRight className="w-4 h-4" />}</button>
             </form>
+            <div className="login-copyright" aria-label="Copyright notice">
+              © 2026 Aditya Guleria · XYZStore PulseOps · Proprietary software · All rights reserved
+            </div>
             <div className="login-access mt-6 pt-5 border-t border-slate-100"><div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-2.5">Workspace access</div><div className="space-y-2">{DEMO_USERS.map((user) => <div key={user.role} className="login-access-card w-full text-left border border-slate-200 rounded-xl p-3 flex items-center gap-3"><div className="login-access-icon w-9 h-9 rounded-lg flex items-center justify-center">{user.role === 'Admin' ? <ShieldCheck className="w-4 h-4" /> : <HardHat className="w-4 h-4" />}</div><div className="flex-1 min-w-0"><div className="text-xs font-bold">{user.role} access</div><div className="text-[11px] text-slate-500 mt-0.5">{user.description}</div></div></div>)}</div><p className="text-[10px] text-slate-400 mt-3 flex items-center gap-1"><Activity className="w-3 h-3" />{serverStatus === 'online' ? 'Workspace service connected' : 'Connecting to workspace service'}<span className="sr-only">. Use the credentials configured by the deployment owner.</span></p></div>
           </div>
         </div>

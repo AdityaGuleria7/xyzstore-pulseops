@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 import React, { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, ArrowRight, Camera, Check, ChevronDown, Clock3, Database, Download, ExternalLink, FileSpreadsheet, PackageCheck, Printer, Tag, Upload, Boxes, ShieldCheck, Users, ScanLine, MapPin, Truck, X, CalendarDays, Activity, Gauge, UserRound, CheckCircle2 } from 'lucide-react';
 import { COURIER_OPTIONS, stageOf } from './Orders';

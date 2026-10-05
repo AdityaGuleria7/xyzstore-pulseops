@@ -1,3 +1,5 @@
+<!-- Copyright © 2026 Aditya Guleria. All rights reserved. -->
+
 # PulseOps — Mac local setup
 
 ## Prerequisites

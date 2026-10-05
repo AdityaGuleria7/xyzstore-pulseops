@@ -1,3 +1,5 @@
+<!-- Copyright © 2026 Aditya Guleria. All rights reserved. -->
+
 # PulseOps Deployment Guide
 
 ## Recommended portfolio deployment: GitHub + Render

@@ -1,3 +1,5 @@
+<!-- Copyright © 2026 Aditya Guleria. All rights reserved. -->
+
 # Publish Checklist
 
 - [ ] Replace all public deployment credentials with your own values in Render/Vercel environment settings.

@@ -6202,3 +6202,45 @@ html.dark:has(.pulseops-app-shell) body {
   .global-orders-heading { flex-wrap: wrap; }
   .global-orders-map-style { margin-left: 0; }
 }
+
+
+/* =========================================================
+   PROPRIETARY UI NOTICE
+   Copyright © 2026 Aditya Guleria. All rights reserved.
+   ========================================================= */
+.pulseops-copyright {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 12px 24px 18px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: .02em;
+  color: #94a3b8;
+  user-select: none;
+}
+.login-copyright {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 9px;
+  line-height: 1.5;
+  color: #94a3b8;
+  user-select: none;
+}
+.dark .pulseops-copyright { color: #64748b; }
+
+/* Discourage casual UI/source-content copying while keeping form controls usable. */
+.pulseops-app-shell, .login-screen {
+  -webkit-user-select: none;
+  user-select: none;
+}
+input, textarea, select, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+@media (max-width: 700px) {
+  .pulseops-copyright { padding: 10px 16px 16px; }
+}

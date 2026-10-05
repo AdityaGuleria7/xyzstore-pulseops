@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Printer, Flag, Table2, Columns3, Tag, Package, Sparkles, X, Zap, MapPin, ExternalLink, Clock3, ChevronDown, ChevronRight, CircleCheck, Layers3, Search, RotateCcw, LoaderCircle } from 'lucide-react';
 import { countdown } from './Dashboard';

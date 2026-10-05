@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 import React, { useCallback, useEffect, useState } from 'react';
 import { Radar, Route, PackageSearch, Zap, RefreshCw, AlertOctagon, ArrowRight, Users, Timer, Gauge, CheckCircle2, Activity, Sparkles, LoaderCircle } from 'lucide-react';
 import * as api from '../lib/api';

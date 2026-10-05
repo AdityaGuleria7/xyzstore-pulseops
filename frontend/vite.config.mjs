@@ -17,7 +17,13 @@ export default defineConfig(({ mode }) => {
       },
     },
     preview: { port: 4173, host: '0.0.0.0' },
-    build: { outDir: 'build' },
+    build: {
+      outDir: 'build',
+      sourcemap: false,
+      minify: 'esbuild',
+      cssMinify: true,
+      reportCompressedSize: false,
+    },
     define: {
       'process.env.REACT_APP_BACKEND_URL': JSON.stringify(
         env.REACT_APP_BACKEND_URL || '',

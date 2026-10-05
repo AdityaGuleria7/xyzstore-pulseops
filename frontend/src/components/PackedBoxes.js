@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useState, useEffect, useMemo } from 'react';
 import { Archive, Clock, AlertTriangle, Truck, MapPin, CalendarClock, CheckCircle2, X, RotateCcw, PackageCheck } from 'lucide-react';

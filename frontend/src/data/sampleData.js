@@ -1,3 +1,8 @@
+/**
+ * Copyright © 2026 Aditya Guleria. All rights reserved.
+ * XYZStore · PulseOps — proprietary software.
+ * Unauthorized copying, reproduction, redistribution, or commercial reuse is prohibited.
+ */
 // Sample deadlines are generated relative to page load so the demo never goes stale
 const NOW = new Date();
 const hoursFromNow = (hours) => {
